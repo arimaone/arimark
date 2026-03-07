@@ -29,54 +29,63 @@ defineEmits(["update:modelValue", "save", "title-change"]);
 </template>
 
 <style>
-/* Arimark Medium-style overrides */
-.arimark-editor .ProseMirror {
+/* Arimark Core Branding Styles */
+.arimark-wrapper [contenteditable="true"] {
   @apply outline-none border-none text-[18px] leading-relaxed text-textMain;
   font-family: 'Source Sans 3', sans-serif;
   min-height: 75vh;
   cursor: text;
   outline: none !important;
   box-shadow: none !important;
+  position: relative;
 }
 
-/* Milkdown v7 Placeholder Style */
-.arimark-editor .ProseMirror .placeholder {
-  @apply text-textMuted pointer-events-none absolute italic;
-  font-style: normal;
+/* Classic Placeholder Logic: Vanishes on Focus, 0.5 Opacity */
+.arimark-wrapper [contenteditable="true"][data-arimark-placeholder]:not(:focus)::before {
+  content: attr(data-arimark-placeholder);
+  @apply absolute pointer-events-none select-none italic;
+  color: var(--text-muted);
+  opacity: 0.5;
 }
 
-.arimark-editor .ProseMirror p {
+/* Explicitly hide on focus to ensure pure canvas feel */
+.arimark-wrapper [contenteditable="true"]:focus::before {
+  display: none !important;
+}
+
+.arimark-wrapper [contenteditable="true"] p {
   @apply mb-6;
 }
 
-.arimark-editor .ProseMirror h1 {
+.arimark-wrapper [contenteditable="true"] h1 {
   @apply text-[42px] font-bold mb-8 leading-tight text-textMain;
 }
 
-.arimark-editor .ProseMirror h2 {
+.arimark-wrapper [contenteditable="true"] h2 {
   @apply text-[30px] font-bold mb-6 mt-10 leading-tight text-textMain;
 }
 
-.arimark-editor .ProseMirror h3 {
+.arimark-wrapper [contenteditable="true"] h3 {
   @apply text-[24px] font-bold mb-4 mt-8 leading-tight text-textMain;
 }
 
-.arimark-editor .ProseMirror blockquote {
+.arimark-wrapper [contenteditable="true"] blockquote {
   @apply border-l-4 border-actionPrimary pl-6 italic text-textMuted my-8 text-[20px];
 }
 
-.arimark-editor .ProseMirror ul, 
-.arimark-editor .ProseMirror ol {
+.arimark-wrapper [contenteditable="true"] ul, 
+.arimark-wrapper [contenteditable="true"] ol {
   @apply mb-6 pl-6;
 }
 
-.arimark-editor .ProseMirror li {
+.arimark-wrapper [contenteditable="true"] li {
   @apply mb-2;
 }
 
-/* Hide Milkdown default elements if any remain */
-.arimark-editor .milkdown-menu,
-.arimark-editor .milkdown-toolbar {
+/* Cleanup: Absolute suppression of any library UI artifacts */
+.arimark-wrapper .milkdown-menu,
+.arimark-wrapper .milkdown-toolbar,
+.arimark-wrapper .milkdown-slash {
   display: none !important;
 }
 </style>

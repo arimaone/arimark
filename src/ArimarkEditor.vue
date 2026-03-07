@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, onUnmounted, ref, watch } from "vue";
+import { onMounted, onUnmounted, ref, watch, nextTick } from "vue";
 import { Milkdown, useEditor } from "@milkdown/vue";
 import { Editor, rootCtx, defaultValueCtx, editorViewOptionsCtx, EditorViewReady, prosePluginsCtx } from "@milkdown/core";
 import { gfm } from "@milkdown/preset-gfm";
@@ -8,11 +8,10 @@ import { history } from "@milkdown/plugin-history";
 import { indent } from "@milkdown/plugin-indent";
 import { listener, listenerCtx } from "@milkdown/plugin-listener";
 import { Plugin, PluginKey } from "@milkdown/prose/state";
-import { Decoration, DecorationSet } from "@milkdown/prose/view";
 
 const props = defineProps({
   modelValue: { type: String, default: "" },
-  placeholder: { type: String, default: "Start writing your masterpiece..." },
+  placeholder: { type: String, default: "Start writing..." },
   readonly: { type: Boolean, default: false },
 });
 
@@ -29,20 +28,17 @@ const extractTitle = (markdown) => {
   return "Untitled Note";
 };
 
-// Custom Arima Placeholder Plugin
+// Custom Arima Placeholder Plugin (Attribute-based)
 const arimarkPlaceholderPlugin = (text) => {
   return new Plugin({
     key: new PluginKey("arimark-placeholder"),
     props: {
-      decorations: (state) => {
+      attributes: (state) => {
         const { doc } = state;
         if (doc.childCount === 1 && doc.firstChild.isTextblock && doc.firstChild.content.size === 0) {
-          const placeholder = document.createElement("span");
-          placeholder.classList.add("placeholder");
-          placeholder.textContent = text;
-          return DecorationSet.create(doc, [Decoration.widget(1, placeholder)]);
+          return { "data-arimark-placeholder": text };
         }
-        return DecorationSet.empty;
+        return { "data-arimark-placeholder": "" };
       },
     },
   });
@@ -55,6 +51,10 @@ const { get, loading } = useEditor((root) => {
       ctx.set(defaultValueCtx, props.modelValue);
       ctx.set(editorViewOptionsCtx, {
         editable: () => !props.readonly,
+        attributes: {
+          class: 'arimark-content',
+          spellcheck: 'false'
+        }
       });
       
       ctx.update(prosePluginsCtx, (prev) => [...prev, arimarkPlaceholderPlugin(props.placeholder)]);
@@ -76,31 +76,31 @@ const { get, loading } = useEditor((root) => {
   return editor;
 });
 
-// Robust Focus Logic
-const tryFocus = () => {
-  const editor = get();
-  if (!editor) return false;
-  
-  const view = editor.action((ctx) => ctx.get(editorViewOptionsCtx).view);
-  if (view && !props.readonly) {
-    view.focus();
-    return true;
-  }
-  return false;
-};
+// Ultimate Focus Logic: MutationObserver
+let observer = null;
+const editorContainer = ref(null);
 
-let focusInterval = null;
 onMounted(() => {
   window.addEventListener("keydown", handleKeyDown);
   
-  // Try focusing multiple times to account for rendering delays
-  let attempts = 0;
-  focusInterval = setInterval(() => {
-    if (tryFocus() || attempts > 20) {
-      clearInterval(focusInterval);
+  // Watch for the contenteditable element to appear
+  observer = new MutationObserver((mutations) => {
+    for (const mutation of mutations) {
+      if (mutation.type === "childList") {
+        const editable = mutation.target.querySelector('[contenteditable="true"]');
+        if (editable && !props.readonly) {
+          editable.focus();
+          console.log("Arimark: Content area detected and focused.");
+          observer.disconnect(); // Stop observing once focused
+          break;
+        }
+      }
     }
-    attempts++;
-  }, 100);
+  });
+
+  if (editorContainer.value) {
+    observer.observe(editorContainer.value, { childList: true, subtree: true });
+  }
 });
 
 const handleKeyDown = (e) => {
@@ -112,12 +112,12 @@ const handleKeyDown = (e) => {
 
 onUnmounted(() => {
   window.removeEventListener("keydown", handleKeyDown);
-  if (focusInterval) clearInterval(focusInterval);
+  if (observer) observer.disconnect();
 });
 </script>
 
 <template>
-  <div class="arimark-editor-inner text-textMain">
-    <Milkdown class="arimark-editor border-none focus:outline-none" />
+  <div ref="editorContainer" class="arimark-editor-inner text-textMain">
+    <Milkdown class="arimark-wrapper border-none focus:outline-none" />
   </div>
 </template>

@@ -4,7 +4,7 @@
 - Service name: `arimark`
 - Layer: `components/style` (Component Library)
 - Status: `active`
-- Spec version: `0.1.0`
+- Spec version: `0.1.5`
 - Last updated: 2026-03-07
 - Owner: `Arima Product Team`
 
@@ -17,6 +17,9 @@ Arimark is the canonical, block-based markdown editor for the Arima ecosystem. I
 - **Typography:** `Source Sans 3` is the absolute standard for all blocks.
 - **Save Logic:** No explicit save button. Implementation must support `Ctrl/Cmd+S` and debounced autosave.
 - **Metadata:** The first line/block of any document is programmatically treated as the "Title".
+- **UX Law:** Placeholders must vanish immediately upon focus to maintain a pure canvas feel.
+- **UX Law:** Placeholder must have an opacity of 0.5.
+- **UI Law:** Navigation elements (Breadcrumbs) must be fluid and free of layout shifts during content updates.
 
 ## 3. Scope Boundaries and Roadmap
 - **v0.1.0:** Core Milkdown integration, Medium-style skin, Slash Commands, and Title extraction.
@@ -77,4 +80,9 @@ Style overrides are handled via UnoCSS utility classes passed to the component c
 - Versioning follows Semantic Versioning (SemVer).
 
 ## 15. Spec Changelog
+- **0.1.5 (2026-03-07):** Reverted placeholder law: must vanish on focus. Kept 0.5 opacity.
+- **0.1.4 (2026-03-07):** Refined placeholder positioning logic to avoid layout interference.
+- **0.1.3 (2026-03-07):** Reverted placeholder alignment while maintaining 0.5 opacity.
+- **0.1.2 (2026-03-07):** Refined placeholder opacity (0.5) and alignment law (native overlay).
+- **0.1.1 (2026-03-07):** Refined placeholder visibility law and breadcrumb stability.
 - **0.1.0 (2026-03-07):** Initial specification for the Arimark Standard.
