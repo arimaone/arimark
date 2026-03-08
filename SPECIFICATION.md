@@ -4,7 +4,7 @@
 - Service name: `arimark`
 - Layer: `components/style` (Component Library)
 - Status: `active`
-- Spec version: `0.3.5`
+- Spec version: `0.3.6`
 - Last updated: 2026-03-07
 - Owner: `Arima Product Team`
 
@@ -20,15 +20,15 @@ Arimark is the canonical, block-based markdown editor for the Arima ecosystem. I
 - **Structural Law:** The very first line of a document defaults to **Heading 1** upon initialization and remains enforced if the document is cleared.
 - **UX Law:** Placeholders must vanish immediately upon focus to maintain a pure canvas feel.
 - **UX Law:** Placeholder must have an opacity of 0.5.
-- **UX Law:** Default placeholder is always `/` to signify the available command-based interaction.
+- **UX Law:** Default placeholder is `Type '/' for commands` to signify the available command-based interaction.
 - **UX Law:** Slash Commands (`/`) provide an intuitive way to create rich content blocks.
 - **UX Law:** Automatic Focus must be guaranteed upon editor initialization.
 - **UI Law:** Navigation elements (Breadcrumbs) must be fluid and free of layout shifts during content updates.
 - **UI Law:** Nuclear Reset: All library-provided outlines, borders, and shadows must be suppressed at the source.
-- **UI Law:** Pure Canvas: All internal padding and margins of the library containers must be set to zero.
+- **UI Law:** Pure Canvas: Surgical removal of internal padding on the content area while preserving menu layouts.
 
 ## 15. Spec Changelog
-- **0.3.5 (2026-03-07):** Documented Pure Canvas law (Zero internal padding).
+- **0.3.6 (2026-03-07):** Updated default placeholder to `Type '/' for commands`.
+- **0.3.5 (2026-03-07):** Documented Pure Canvas law (Surgical zero internal padding).
 - **0.3.4 (2026-03-07):** Guaranteed Heading 1 transformation on initial editor creation.
-- **0.3.3 (2026-03-07):** Simplified placeholder logic to always display `/`.
 ...
