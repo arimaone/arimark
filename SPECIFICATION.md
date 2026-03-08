@@ -4,7 +4,7 @@
 - Service name: `arimark`
 - Layer: `components/style` (Component Library)
 - Status: `active`
-- Spec version: `0.3.6`
+- Spec version: `0.3.7`
 - Last updated: 2026-03-07
 - Owner: `Arima Product Team`
 
@@ -23,12 +23,13 @@ Arimark is the canonical, block-based markdown editor for the Arima ecosystem. I
 - **UX Law:** Default placeholder is `Type '/' for commands` to signify the available command-based interaction.
 - **UX Law:** Slash Commands (`/`) provide an intuitive way to create rich content blocks.
 - **UX Law:** Automatic Focus must be guaranteed upon editor initialization.
+- **UX Law:** Ghost Block Indicators: Subtle icons sit in the **right margin** to provide structural context without interfering with left-side drag handles.
 - **UI Law:** Navigation elements (Breadcrumbs) must be fluid and free of layout shifts during content updates.
 - **UI Law:** Nuclear Reset: All library-provided outlines, borders, and shadows must be suppressed at the source.
 - **UI Law:** Pure Canvas: Surgical removal of internal padding on the content area while preserving menu layouts.
 
 ## 15. Spec Changelog
+- **0.3.7 (2026-03-07):** Moved Ghost Block Indicators to the right margin to avoid handle conflicts.
 - **0.3.6 (2026-03-07):** Updated default placeholder to `Type '/' for commands`.
 - **0.3.5 (2026-03-07):** Documented Pure Canvas law (Surgical zero internal padding).
-- **0.3.4 (2026-03-07):** Guaranteed Heading 1 transformation on initial editor creation.
 ...

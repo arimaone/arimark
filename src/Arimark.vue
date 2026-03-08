@@ -13,8 +13,8 @@ defineEmits(["update:modelValue", "save", "title-change"]);
 <template>
   <div class="arimark-container w-full font-sans">
     <div class="w-full">
-      <ArimarkEditor 
-        :modelValue="modelValue" 
+      <ArimarkEditor
+        :modelValue="modelValue"
         :placeholder="placeholder"
         :readonly="readonly"
         @update:modelValue="$emit('update:modelValue', $event)"
@@ -42,10 +42,11 @@ defineEmits(["update:modelValue", "save", "title-change"]);
   --crepe-color-primary: var(--action-primary) !important;
   --crepe-color-hover: var(--bg-muted) !important;
   --crepe-color-selected: var(--action-hover) !important;
-  
+  --crepe-color-inline-area: var(--bg-muted) !important;
+
   --crepe-font-default: 'Source Sans 3', sans-serif !important;
   --crepe-font-title: 'Source Sans 3', sans-serif !important;
-  
+
   --crepe-shadow-1: none !important;
   --crepe-shadow-2: none !important;
 
@@ -68,19 +69,53 @@ defineEmits(["update:modelValue", "save", "title-change"]);
   min-height: 70vh;
 }
 
-/* 3. Slash Menu - Arima Precision Alignment */
+/* 3. Innovative Typographic Ghost Indicators (Right-Side) */
+.arimark-crepe-host .ProseMirror > * {
+  position: relative !important;
+}
+
+.arimark-crepe-host .ProseMirror > *::after {
+  position: absolute;
+  right: -80px; /* More space for longer labels */
+  font-size: 1rem !important;
+  @apply font-bold text-textMuted uppercase tracking-wider pointer-events-none select-none !important;
+  opacity: 0.3;
+  transition: all 0.2s ease;
+  font-family: 'Source Sans 3', sans-serif !important;
+  white-space: nowrap;
+}
+
+/* Precise Mapping based on real Crepe DOM tags and classes */
+.arimark-crepe-host .ProseMirror > p::after { content: "P"; top: 4px; }
+.arimark-crepe-host .ProseMirror > h1::after { content: "H1"; top: 12px; }
+.arimark-crepe-host .ProseMirror > h2::after { content: "H2"; top: 10px; }
+.arimark-crepe-host .ProseMirror > h3::after { content: "H3"; top: 8px; }
+.arimark-crepe-host .ProseMirror > blockquote::after { content: "QUOTE"; top: 4px; }
+.arimark-crepe-host .ProseMirror > hr::after { content: "DIVIDER"; top: -10px; }
+.arimark-crepe-host .ProseMirror > ul::after { content: "BULLET"; top: 4px; }
+.arimark-crepe-host .ProseMirror > ol::after { content: "ORDERED"; top: 4px; }
+.arimark-crepe-host .ProseMirror > .task-list::after { content: "TASK"; top: 4px; }
+.arimark-crepe-host .ProseMirror > .milkdown-image-block::after { content: "IMAGE"; top: 4px; }
+.arimark-crepe-host .ProseMirror > .milkdown-code-block::after { content: "CODE"; top: 4px; }
+.arimark-crepe-host .ProseMirror > .milkdown-table::after,
+.arimark-crepe-host .ProseMirror > .milkdown-table-block::after { content: "TABLE"; top: 4px; }
+
+/* Highlight state */
+.arimark-crepe-host .ProseMirror > *:hover::after,
+.arimark-crepe-host .ProseMirror > *.ProseMirror-selectednode::after {
+  opacity: 0.8 !important;
+  color: var(--action-primary) !important;
+}
+
+/* 4. Sidebar-Style Slash Menu */
 .arimark-crepe-host .milkdown-slash-menu {
   @apply bg-surfaceMain border border-borderSubtle rounded-[6px] font-sans !important;
   background-color: var(--bg-main) !important;
   border: 1px solid var(--border-subtle) !important;
   box-shadow: 0 12px 40px -12px rgba(0, 0, 0, 0.2) !important;
   padding: 4px !important;
-  min-width: 200px !important; 
+  min-width: 200px !important;
   z-index: 1000 !important;
-}
-
-.arimark-crepe-host .milkdown-slash-menu .menu-groups {
-  padding: 0 2px 2px !important;
 }
 
 .arimark-crepe-host .milkdown-slash-menu .menu-groups .menu-group h6 {
@@ -91,8 +126,7 @@ defineEmits(["update:modelValue", "save", "title-change"]);
 .arimark-crepe-host .milkdown-slash-menu .menu-group li {
   @apply flex items-center gap-2.5 px-2 py-1.5 rounded-[4px] cursor-pointer transition-colors !important;
   color: var(--text-main) !important;
-  min-width: unset !important;
-  height: 32px !important; 
+  height: 32px !important;
 }
 
 .arimark-crepe-host .milkdown-slash-menu .menu-group li.active,
@@ -100,49 +134,23 @@ defineEmits(["update:modelValue", "save", "title-change"]);
   background-color: var(--bg-muted) !important;
 }
 
-/* Icon Precision Fix: Overriding Crepe's hardcoded SVG weights */
 .arimark-crepe-host .milkdown-slash-menu .menu-group li svg {
-  @apply w-[18px] h-[18px] !important; 
+  @apply w-[18px] h-[18px] !important;
   fill: var(--text-muted) !important;
-  color: var(--text-muted) !important;
-  /* Nuclear suppression of heavy paths */
   stroke: none !important;
-  opacity: 0.6;
-  transition: all 0.2s ease;
+  opacity: 0.8;
 }
 
-/* Ensure paths themselves are not thick */
-.arimark-crepe-host .milkdown-slash-menu .menu-group li svg path {
-  fill: currentColor !important;
-}
-
-.arimark-crepe-host .milkdown-slash-menu .menu-group li > span {
-  @apply text-[13px] !important;
-  line-height: 1 !important;
-}
-
-.arimark-crepe-host .milkdown-slash-menu .menu-group li.active svg,
-.arimark-crepe-host .milkdown-slash-menu .menu-group li:hover svg {
+.arimark-crepe-host .milkdown-slash-menu .menu-group li.active svg {
   fill: var(--action-primary) !important;
-  color: var(--action-primary) !important;
   opacity: 1;
 }
 
-.arimark-crepe-host .milkdown-slash-menu .menu-group li.active > span {
-  @apply text-actionPrimary font-medium !important;
-}
-
-/* 4. Block Handles Alignment */
-.arimark-crepe-host .milkdown-block-handle .operation-item {
-  @apply rounded-[4px] transition-colors !important;
-  width: 28px !important;
-  height: 28px !important;
-}
-
+/* 5. Block Handles & Ghost Placeholder */
 .arimark-crepe-host .milkdown-block-handle .operation-item svg {
   @apply w-[18px] h-[18px] !important;
   fill: var(--text-muted) !important;
-  opacity: 0.25;
+  opacity: 0.3;
 }
 
 .arimark-crepe-host .milkdown-block-handle .operation-item:hover svg {
@@ -150,7 +158,6 @@ defineEmits(["update:modelValue", "save", "title-change"]);
   opacity: 1;
 }
 
-/* 5. Ghost Placeholder */
 .arimark-crepe-host .ProseMirror .placeholder {
   @apply text-textMuted pointer-events-none absolute italic !important;
   color: var(--text-muted) !important;
