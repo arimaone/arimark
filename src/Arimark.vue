@@ -79,7 +79,7 @@ defineEmits(["update:modelValue", "save", "title-change"]);
   right: -80px; /* More space for longer labels */
   font-size: 1rem !important;
   @apply font-bold text-textMuted uppercase tracking-wider pointer-events-none select-none !important;
-  opacity: 0.3;
+  opacity: 0.15; /* Subtly reduced from 0.3 */
   transition: all 0.2s ease;
   font-family: 'Source Sans 3', sans-serif !important;
   white-space: nowrap;
@@ -103,7 +103,7 @@ defineEmits(["update:modelValue", "save", "title-change"]);
 /* Highlight state */
 .arimark-crepe-host .ProseMirror > *:hover::after,
 .arimark-crepe-host .ProseMirror > *.ProseMirror-selectednode::after {
-  opacity: 0.8 !important;
+  opacity: 0.4 !important; /* Subtly reduced from 0.8 */
   color: var(--action-primary) !important;
 }
 
