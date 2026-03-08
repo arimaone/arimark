@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@milkdown/core": "^7.6.3",
+    "@milkdown/crepe": "^7.6.3",
     "@milkdown/ctx": "^7.6.3",
     "@milkdown/plugin-history": "^7.6.3",
     "@milkdown/plugin-indent": "^7.6.3",

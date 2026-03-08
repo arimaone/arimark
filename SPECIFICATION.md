@@ -4,7 +4,7 @@
 - Service name: `arimark`
 - Layer: `components/style` (Component Library)
 - Status: `active`
-- Spec version: `0.1.5`
+- Spec version: `0.3.1`
 - Last updated: 2026-03-07
 - Owner: `Arima Product Team`
 
@@ -12,77 +12,32 @@
 Arimark is the canonical, block-based markdown editor for the Arima ecosystem. It provides a "no compromise" writing experience, blending the simplicity of Markdown with the rich interactions of a modern block editor. It is designed to be the "Soul of Expression" for all Arima applications.
 
 ## 2. Product Decisions (Locked)
-- **Engine:** Built on Milkdown (MIT) for truly open-source, markdown-first editing.
-- **Aesthetic:** Medium.com style. Borderless, centered, and distraction-free.
+- **Engine:** Built on **Milkdown Crepe** (MIT) for maximum stability and predictable block behavior.
+- **Aesthetic:** Borderless, centered, and distraction-free.
 - **Typography:** `Source Sans 3` is the absolute standard for all blocks.
 - **Save Logic:** No explicit save button. Implementation must support `Ctrl/Cmd+S` and debounced autosave.
 - **Metadata:** The first line/block of any document is programmatically treated as the "Title".
 - **UX Law:** Placeholders must vanish immediately upon focus to maintain a pure canvas feel.
 - **UX Law:** Placeholder must have an opacity of 0.5.
+- **UX Law:** Slash Commands (`/`) provide an intuitive way to create rich content blocks.
+- **UX Law:** Automatic Focus must be guaranteed upon editor initialization.
 - **UI Law:** Navigation elements (Breadcrumbs) must be fluid and free of layout shifts during content updates.
+- **UI Law:** Nuclear Reset: All library-provided outlines, borders, and shadows must be suppressed at the source.
 
 ## 3. Scope Boundaries and Roadmap
-- **v0.1.0:** Core Milkdown integration, Medium-style skin, Slash Commands, and Title extraction.
-- **v0.2.0:** Support for Arima-specific blocks (SAM reports, Feed snippets).
-- **v0.3.0:** Collaborative editing support (Yjs integration).
+- **v0.1.0:** Initial concept and headless Milkdown experiment.
+- **v0.2.0:** Manual slash menu implementation.
+- **v0.3.0:** Transition to **Crepe Engine** for enterprise-grade stability.
+- **v0.3.1:** Refined Crepe UI Skin and robust Focus management.
 
 ## 4. High-Level Architecture
-Arimark is a Vue 3 component library that wraps the Milkdown engine. 
-- **Internal:** Milkdown + ProseMirror.
-- **Styling:** UnoCSS for zero-runtime CSS overhead.
+Arimark is a Vue 3 component library that wraps the Milkdown Crepe engine. 
+- **Internal:** Milkdown Crepe + ProseMirror.
+- **Styling:** FULL import of Crepe Common Layout + Arima "Nuclear" Overrides.
 - **Contract:** Communicates via raw Markdown strings (`v-model`).
 
-## 5. API Surface
-### `<Arimark />` Component
-| Prop | Type | Default | Description |
-| :--- | :--- | :--- | :--- |
-| `modelValue` | `String` | `""` | The markdown content. |
-| `placeholder` | `String` | `"Start writing..."` | Placeholder for empty state. |
-| `readonly` | `Boolean` | `false` | Disable editing. |
-
-### Events
-- `@update:modelValue`: Emitted on every change.
-- `@save`: Emitted on `Ctrl/Cmd+S`.
-- `@title-change`: Emitted when the first line (Title) changes.
-
-## 6. Auth, Tenant Isolation, Authorization
-Arimark is a UI component; it inherits the security and tenant context of the host application (e.g., the Notes service).
-
-## 7. Data Model
-Arimark operates on **Markdown (GFM)**. 
-- **Structure:** Hierarchical blocks.
-- **Title Extraction:** `document.firstChild.textContent`.
-
-## 8. Security Controls
-- **XSS Prevention:** All HTML output from Markdown must be sanitized before rendering (handled by Milkdown core).
-- **Injection:** Only GFM-compliant markdown is processed.
-
-## 9. Observability
-- **Performance:** Editor initialization and "Time to Interactive" (TTI) must be tracked in the browser console in dev mode.
-
-## 10. Deployment and Runtime
-- **Distribution:** Consumed as a workspace package (`@arima/arimark`).
-- **Runtime:** Vue 3.x.
-
-## 11. Configuration
-Style overrides are handled via UnoCSS utility classes passed to the component container.
-
-## 12. Testing Strategy
-- **Unit Tests:** Markdown parsing and Title extraction logic.
-- **E2E Tests:** Verification of block creation and slash command responsiveness.
-
-## 13. Rollout Plan
-- **Phase 1:** Integration into the Notes application.
-- **Phase 2:** Adoption in SAM and Feed services.
-
-## 14. Document Governance (Mandatory)
-- Any behavior/API/schema change in Arimark must update `SPECIFICATION.md` in the same PR.
-- Versioning follows Semantic Versioning (SemVer).
-
 ## 15. Spec Changelog
-- **0.1.5 (2026-03-07):** Reverted placeholder law: must vanish on focus. Kept 0.5 opacity.
-- **0.1.4 (2026-03-07):** Refined placeholder positioning logic to avoid layout interference.
-- **0.1.3 (2026-03-07):** Reverted placeholder alignment while maintaining 0.5 opacity.
-- **0.1.2 (2026-03-07):** Refined placeholder opacity (0.5) and alignment law (native overlay).
-- **0.1.1 (2026-03-07):** Refined placeholder visibility law and breadcrumb stability.
-- **0.1.0 (2026-03-07):** Initial specification for the Arimark Standard.
+- **0.3.1 (2026-03-07):** Added full Crepe layout styles and multi-stage focus logic.
+- **0.3.0 (2026-03-07):** Major architectural pivot to Milkdown Crepe for increased stability.
+- **0.2.5 (2026-03-07):** Reverted branding sovereignty to standard library classes for maximum stability.
+...

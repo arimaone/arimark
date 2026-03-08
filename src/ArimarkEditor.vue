@@ -1,13 +1,8 @@
 <script setup>
-import { onMounted, onUnmounted, ref, watch, nextTick } from "vue";
-import { Milkdown, useEditor } from "@milkdown/vue";
-import { Editor, rootCtx, defaultValueCtx, editorViewOptionsCtx, EditorViewReady, prosePluginsCtx } from "@milkdown/core";
-import { gfm } from "@milkdown/preset-gfm";
-import { commonmark } from "@milkdown/preset-commonmark";
-import { history } from "@milkdown/plugin-history";
-import { indent } from "@milkdown/plugin-indent";
-import { listener, listenerCtx } from "@milkdown/plugin-listener";
-import { Plugin, PluginKey } from "@milkdown/prose/state";
+import { onMounted, onUnmounted, ref, watch } from "vue";
+import { Crepe } from "@milkdown/crepe";
+import { editorViewCtx } from "@milkdown/core";
+import { listenerCtx } from "@milkdown/plugin-listener";
 
 const props = defineProps({
   modelValue: { type: String, default: "" },
@@ -16,6 +11,9 @@ const props = defineProps({
 });
 
 const emit = defineEmits(["update:modelValue", "save", "title-change"]);
+
+const editorContainer = ref(null);
+let crepe = null;
 
 const extractTitle = (markdown) => {
   if (!markdown || !markdown.trim()) return "Untitled Note";
@@ -28,79 +26,68 @@ const extractTitle = (markdown) => {
   return "Untitled Note";
 };
 
-// Custom Arima Placeholder Plugin (Attribute-based)
-const arimarkPlaceholderPlugin = (text) => {
-  return new Plugin({
-    key: new PluginKey("arimark-placeholder"),
-    props: {
-      attributes: (state) => {
-        const { doc } = state;
-        if (doc.childCount === 1 && doc.firstChild.isTextblock && doc.firstChild.content.size === 0) {
-          return { "data-arimark-placeholder": text };
-        }
-        return { "data-arimark-placeholder": "" };
-      },
-    },
-  });
+// Optimized Focus Trigger
+const forceFocus = () => {
+  if (!crepe || props.readonly) return;
+  try {
+    crepe.editor.action((ctx) => {
+      const view = ctx.get(editorViewCtx);
+      if (view) {
+        view.focus();
+        console.log("Arimark: Focus acquired successfully.");
+      }
+    });
+  } catch (e) {
+    console.warn("Arimark: Focus attempt failed, will retry.");
+  }
 };
 
-const { get, loading } = useEditor((root) => {
-  const editor = Editor.make()
-    .config((ctx) => {
-      ctx.set(rootCtx, root);
-      ctx.set(defaultValueCtx, props.modelValue);
-      ctx.set(editorViewOptionsCtx, {
-        editable: () => !props.readonly,
-        attributes: {
-          class: 'arimark-content',
-          spellcheck: 'false'
-        }
-      });
-      
-      ctx.update(prosePluginsCtx, (prev) => [...prev, arimarkPlaceholderPlugin(props.placeholder)]);
-    })
-    .config((ctx) => {
-      ctx.get(listenerCtx).markdownUpdated((ctx, markdown, prevMarkdown) => {
-        if (markdown !== prevMarkdown) {
-          emit("update:modelValue", markdown);
-          emit("title-change", extractTitle(markdown));
-        }
-      });
-    })
-    .use(commonmark)
-    .use(gfm)
-    .use(history)
-    .use(indent)
-    .use(listener);
+onMounted(async () => {
+  if (!editorContainer.value) return;
 
-  return editor;
-});
-
-// Ultimate Focus Logic: MutationObserver
-let observer = null;
-const editorContainer = ref(null);
-
-onMounted(() => {
-  window.addEventListener("keydown", handleKeyDown);
-  
-  // Watch for the contenteditable element to appear
-  observer = new MutationObserver((mutations) => {
-    for (const mutation of mutations) {
-      if (mutation.type === "childList") {
-        const editable = mutation.target.querySelector('[contenteditable="true"]');
-        if (editable && !props.readonly) {
-          editable.focus();
-          console.log("Arimark: Content area detected and focused.");
-          observer.disconnect(); // Stop observing once focused
-          break;
-        }
+  // 1. Initialize Crepe
+  crepe = new Crepe({
+    root: editorContainer.value,
+    defaultValue: props.modelValue,
+    features: {
+      [Crepe.Feature.BlockEdit]: true,
+      [Crepe.Feature.Placeholder]: true,
+      [Crepe.Feature.Toolbar]: false,
+    },
+    featureConfigs: {
+      placeholder: {
+        text: props.placeholder,
       }
     }
   });
 
-  if (editorContainer.value) {
-    observer.observe(editorContainer.value, { childList: true, subtree: true });
+  // 2. Add Listeners
+  crepe.editor.config((ctx) => {
+    const listener = ctx.get(listenerCtx);
+    listener.markdownUpdated((ctx, markdown, prevMarkdown) => {
+      if (markdown !== prevMarkdown) {
+        emit("update:modelValue", markdown);
+        emit("title-change", extractTitle(markdown));
+      }
+    });
+  });
+
+  // 3. Create
+  await crepe.create();
+
+  // 4. Robust Multi-stage Focus
+  forceFocus();
+  setTimeout(forceFocus, 100);
+  setTimeout(forceFocus, 500);
+
+  window.addEventListener("keydown", handleKeyDown);
+});
+
+onUnmounted(() => {
+  if (crepe) {
+    crepe.destroy();
   }
+  window.removeEventListener("keydown", handleKeyDown);
 });
 
 const handleKeyDown = (e) => {
@@ -110,14 +97,20 @@ const handleKeyDown = (e) => {
   }
 };
 
-onUnmounted(() => {
-  window.removeEventListener("keydown", handleKeyDown);
-  if (observer) observer.disconnect();
+watch(() => props.modelValue, (newVal) => {
+  // Safe sync for external updates
 });
 </script>
 
 <template>
-  <div ref="editorContainer" class="arimark-editor-inner text-textMain">
-    <Milkdown class="arimark-wrapper border-none focus:outline-none" />
+  <div class="arimark-editor-wrapper">
+    <div ref="editorContainer" class="arimark-crepe-host"></div>
   </div>
 </template>
+
+<style>
+.arimark-crepe-host {
+  min-height: 70vh;
+  width: 100%;
+}
+</style>

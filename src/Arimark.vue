@@ -1,5 +1,4 @@
 <script setup>
-import { MilkdownProvider } from "@milkdown/vue";
 import ArimarkEditor from "./ArimarkEditor.vue";
 
 defineProps({
@@ -14,78 +13,85 @@ defineEmits(["update:modelValue", "save", "title-change"]);
 <template>
   <div class="arimark-container w-full font-sans">
     <div class="w-full">
-      <MilkdownProvider>
-        <ArimarkEditor 
-          :modelValue="modelValue" 
-          :placeholder="placeholder"
-          :readonly="readonly"
-          @update:modelValue="$emit('update:modelValue', $event)"
-          @save="$emit('save', $event)"
-          @title-change="$emit('title-change', $event)"
-        />
-      </MilkdownProvider>
+      <ArimarkEditor 
+        :modelValue="modelValue" 
+        :placeholder="placeholder"
+        :readonly="readonly"
+        @update:modelValue="$emit('update:modelValue', $event)"
+        @save="$emit('save', $event)"
+        @title-change="$emit('title-change', $event)"
+      />
     </div>
   </div>
 </template>
 
 <style>
-/* Arimark Core Branding Styles */
-.arimark-wrapper [contenteditable="true"] {
-  @apply outline-none border-none text-[18px] leading-relaxed text-textMain;
-  font-family: 'Source Sans 3', sans-serif;
-  min-height: 75vh;
-  cursor: text;
+/* 1. Import Crepe Base Styles (Variables + FULL Layout) */
+@import "@milkdown/crepe/theme/common/style.css";
+@import "@milkdown/crepe/theme/classic.css";
+
+/* 2. Arima "Nuclear" Reset */
+.arimark-crepe-host, 
+.arimark-crepe-host *,
+.arimark-crepe-host *:focus,
+.arimark-crepe-host *:active {
   outline: none !important;
   box-shadow: none !important;
-  position: relative;
+  -webkit-tap-highlight-color: transparent;
 }
 
-/* Classic Placeholder Logic: Vanishes on Focus, 0.5 Opacity */
-.arimark-wrapper [contenteditable="true"][data-arimark-placeholder]:not(:focus)::before {
-  content: attr(data-arimark-placeholder);
-  @apply absolute pointer-events-none select-none italic;
-  color: var(--text-muted);
+.arimark-crepe-host .milkdown {
+  border: none !important;
+  background: transparent !important;
+}
+
+/* 3. Arima Design Overrides */
+.arimark-crepe-host {
+  /* Brand Constants */
+  --crepe-font-default: 'Source Sans 3', sans-serif !important;
+  --crepe-font-title: 'Source Sans 3', sans-serif !important;
+  --crepe-color-background: transparent !important;
+  
+  /* Kill borders at the variable level */
+  --crepe-color-outline: transparent !important;
+}
+
+.arimark-crepe-host .ProseMirror {
+  @apply p-0;
+  font-family: 'Source Sans 3', sans-serif !important;
+  font-size: 18px !important;
+  line-height: 1.6 !important;
+  min-height: 70vh;
+}
+
+/* Fix the Slash Menu - Give it a proper Arima Box feel */
+.arimark-crepe-host .milkdown-slash-menu {
+  @apply bg-surfaceMain border border-borderSubtle rounded-[8px] shadow-2xl font-sans !important;
+  padding: 8px !important;
+  min-width: 280px !important;
+}
+
+.arimark-crepe-host .milkdown-slash-menu .menu-group li {
+  @apply rounded-[4px] transition-colors !important;
+  padding: 10px 12px !important;
+}
+
+.arimark-crepe-host .milkdown-slash-menu .menu-group li.active,
+.arimark-crepe-host .milkdown-slash-menu .menu-group li:hover {
+  @apply bg-surfaceMuted text-actionPrimary !important;
+}
+
+/* Ghost Placeholder: 0.5 Opacity */
+.arimark-crepe-host .ProseMirror .placeholder {
+  @apply text-textMuted pointer-events-none absolute italic;
   opacity: 0.5;
+  font-style: normal;
+  left: 0;
 }
 
-/* Explicitly hide on focus to ensure pure canvas feel */
-.arimark-wrapper [contenteditable="true"]:focus::before {
-  display: none !important;
-}
-
-.arimark-wrapper [contenteditable="true"] p {
-  @apply mb-6;
-}
-
-.arimark-wrapper [contenteditable="true"] h1 {
-  @apply text-[42px] font-bold mb-8 leading-tight text-textMain;
-}
-
-.arimark-wrapper [contenteditable="true"] h2 {
-  @apply text-[30px] font-bold mb-6 mt-10 leading-tight text-textMain;
-}
-
-.arimark-wrapper [contenteditable="true"] h3 {
-  @apply text-[24px] font-bold mb-4 mt-8 leading-tight text-textMain;
-}
-
-.arimark-wrapper [contenteditable="true"] blockquote {
-  @apply border-l-4 border-actionPrimary pl-6 italic text-textMuted my-8 text-[20px];
-}
-
-.arimark-wrapper [contenteditable="true"] ul, 
-.arimark-wrapper [contenteditable="true"] ol {
-  @apply mb-6 pl-6;
-}
-
-.arimark-wrapper [contenteditable="true"] li {
-  @apply mb-2;
-}
-
-/* Cleanup: Absolute suppression of any library UI artifacts */
-.arimark-wrapper .milkdown-menu,
-.arimark-wrapper .milkdown-toolbar,
-.arimark-wrapper .milkdown-slash {
+/* Cleanup: Absolute suppression of standard menu artifacts */
+.arimark-crepe-host .milkdown-menu,
+.arimark-crepe-host .milkdown-toolbar {
   display: none !important;
 }
 </style>
