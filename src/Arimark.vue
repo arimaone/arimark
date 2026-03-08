@@ -3,7 +3,7 @@ import ArimarkEditor from "./ArimarkEditor.vue";
 
 defineProps({
   modelValue: { type: String, default: "" },
-  placeholder: { type: String, default: "Start writing your masterpiece..." },
+  placeholder: { type: String, default: "Press \"/\" to start" },
   readonly: { type: Boolean, default: false },
 });
 
@@ -13,8 +13,8 @@ defineEmits(["update:modelValue", "save", "title-change"]);
 <template>
   <div class="arimark-container w-full font-sans">
     <div class="w-full">
-      <ArimarkEditor 
-        :modelValue="modelValue" 
+      <ArimarkEditor
+        :modelValue="modelValue"
         :placeholder="placeholder"
         :readonly="readonly"
         @update:modelValue="$emit('update:modelValue', $event)"
@@ -36,21 +36,18 @@ defineEmits(["update:modelValue", "save", "title-change"]);
   /* Arima Core Variables Integration */
   --crepe-color-background: transparent !important;
   --crepe-color-on-background: var(--text-main) !important;
-  
+
   --crepe-color-surface: var(--bg-main) !important;
   --crepe-color-surface-low: var(--bg-muted) !important;
   --crepe-color-on-surface: var(--text-main) !important;
   --crepe-color-on-surface-variant: var(--text-muted) !important;
-  
+
   --crepe-color-outline: var(--border-subtle) !important;
   --crepe-color-primary: var(--action-primary) !important;
-  --crepe-color-secondary: var(--bg-muted) !important;
-  --crepe-color-on-secondary: var(--text-main) !important;
-  
   --crepe-color-hover: var(--bg-muted) !important;
   --crepe-color-selected: var(--action-hover) !important;
   --crepe-color-inline-area: var(--bg-muted) !important;
-  
+
   /* Typography Sovereignty */
   --crepe-font-default: 'Source Sans 3', sans-serif !important;
   --crepe-font-title: 'Source Sans 3', sans-serif !important;
@@ -74,8 +71,9 @@ defineEmits(["update:modelValue", "save", "title-change"]);
   box-shadow: none !important;
 }
 
+/* SURGICAL FIX: Remove only the ProseMirror padding */
 .arimark-crepe-host .ProseMirror {
-  @apply p-0 !important;
+  padding: 0 !important;
   color: var(--text-main) !important;
   background: transparent !important;
   min-height: 70vh;
@@ -129,6 +127,7 @@ defineEmits(["update:modelValue", "save", "title-change"]);
   @apply text-textMuted pointer-events-none absolute italic !important;
   color: var(--text-muted) !important;
   opacity: 0.5 !important;
+  left: 0 !important;
 }
 
 /* 6. Cleanup */

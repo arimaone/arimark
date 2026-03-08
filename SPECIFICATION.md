@@ -4,7 +4,7 @@
 - Service name: `arimark`
 - Layer: `components/style` (Component Library)
 - Status: `active`
-- Spec version: `0.3.4`
+- Spec version: `0.3.5`
 - Last updated: 2026-03-07
 - Owner: `Arima Product Team`
 
@@ -13,7 +13,7 @@ Arimark is the canonical, block-based markdown editor for the Arima ecosystem. I
 
 ## 2. Product Decisions (Locked)
 - **Engine:** Built on **Milkdown Crepe** (MIT) for maximum stability and predictable block behavior.
-- **Aesthetic:** Borderless, centered, and distraction-free.
+- **Aesthetic:** Medium.com style. Borderless, centered, and distraction-free.
 - **Typography:** `Source Sans 3` is the absolute standard for all blocks.
 - **Save Logic:** No explicit save button. Implementation must support `Ctrl/Cmd+S` and debounced autosave.
 - **Metadata:** The first line/block of any document is programmatically treated as the "Title".
@@ -25,10 +25,10 @@ Arimark is the canonical, block-based markdown editor for the Arima ecosystem. I
 - **UX Law:** Automatic Focus must be guaranteed upon editor initialization.
 - **UI Law:** Navigation elements (Breadcrumbs) must be fluid and free of layout shifts during content updates.
 - **UI Law:** Nuclear Reset: All library-provided outlines, borders, and shadows must be suppressed at the source.
+- **UI Law:** Pure Canvas: All internal padding and margins of the library containers must be set to zero.
 
 ## 15. Spec Changelog
+- **0.3.5 (2026-03-07):** Documented Pure Canvas law (Zero internal padding).
 - **0.3.4 (2026-03-07):** Guaranteed Heading 1 transformation on initial editor creation.
 - **0.3.3 (2026-03-07):** Simplified placeholder logic to always display `/`.
-- **0.3.2 (2026-03-07):** Enforced Heading 1 as the default block for the first empty line.
-- **0.3.1 (2026-03-07):** Added full Crepe layout styles and multi-stage focus logic.
 ...
