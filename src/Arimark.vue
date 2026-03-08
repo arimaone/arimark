@@ -3,7 +3,7 @@ import ArimarkEditor from "./ArimarkEditor.vue";
 
 defineProps({
   modelValue: { type: String, default: "" },
-  placeholder: { type: String, default: "Press \"/\" to start" },
+  placeholder: { type: String, default: "Type '/' for commands" },
   readonly: { type: Boolean, default: false },
 });
 
@@ -13,8 +13,8 @@ defineEmits(["update:modelValue", "save", "title-change"]);
 <template>
   <div class="arimark-container w-full font-sans">
     <div class="w-full">
-      <ArimarkEditor
-        :modelValue="modelValue"
+      <ArimarkEditor 
+        :modelValue="modelValue" 
         :placeholder="placeholder"
         :readonly="readonly"
         @update:modelValue="$emit('update:modelValue', $event)"
@@ -31,39 +31,29 @@ defineEmits(["update:modelValue", "save", "title-change"]);
 @import "@milkdown/crepe/theme/classic.css";
 
 /* 2. Arima Theme Sovereignty */
-/* We target the .milkdown class to override its internal variable defaults */
 .arimark-crepe-host .milkdown {
-  /* Arima Core Variables Integration */
   --crepe-color-background: transparent !important;
   --crepe-color-on-background: var(--text-main) !important;
-
   --crepe-color-surface: var(--bg-main) !important;
   --crepe-color-surface-low: var(--bg-muted) !important;
   --crepe-color-on-surface: var(--text-main) !important;
   --crepe-color-on-surface-variant: var(--text-muted) !important;
-
   --crepe-color-outline: var(--border-subtle) !important;
   --crepe-color-primary: var(--action-primary) !important;
   --crepe-color-hover: var(--bg-muted) !important;
   --crepe-color-selected: var(--action-hover) !important;
-  --crepe-color-inline-area: var(--bg-muted) !important;
-
-  /* Typography Sovereignty */
+  
   --crepe-font-default: 'Source Sans 3', sans-serif !important;
   --crepe-font-title: 'Source Sans 3', sans-serif !important;
-  --crepe-font-code: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
-
-  /* Kill Shadows */
+  
   --crepe-shadow-1: none !important;
   --crepe-shadow-2: none !important;
 
-  /* Force Layout Stability */
   background-color: transparent !important;
   border: none !important;
   box-shadow: none !important;
 }
 
-/* 3. Deep Interaction Resets */
 .arimark-crepe-host .milkdown *,
 .arimark-crepe-host .milkdown *:focus,
 .arimark-crepe-host .milkdown *:active {
@@ -71,7 +61,6 @@ defineEmits(["update:modelValue", "save", "title-change"]);
   box-shadow: none !important;
 }
 
-/* SURGICAL FIX: Remove only the ProseMirror padding */
 .arimark-crepe-host .ProseMirror {
   padding: 0 !important;
   color: var(--text-main) !important;
@@ -79,21 +68,31 @@ defineEmits(["update:modelValue", "save", "title-change"]);
   min-height: 70vh;
 }
 
-/* 4. Arima Branded Slash Menu */
+/* 3. Slash Menu - Arima Precision Alignment */
 .arimark-crepe-host .milkdown-slash-menu {
-  @apply bg-surfaceMain border border-borderSubtle rounded-[8px] font-sans !important;
+  @apply bg-surfaceMain border border-borderSubtle rounded-[6px] font-sans !important;
   background-color: var(--bg-main) !important;
   border: 1px solid var(--border-subtle) !important;
-  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.3) !important;
+  box-shadow: 0 12px 40px -12px rgba(0, 0, 0, 0.2) !important;
+  padding: 4px !important;
+  min-width: 200px !important; 
+  z-index: 1000 !important;
+}
+
+.arimark-crepe-host .milkdown-slash-menu .menu-groups {
+  padding: 0 2px 2px !important;
 }
 
 .arimark-crepe-host .milkdown-slash-menu .menu-groups .menu-group h6 {
-  @apply text-[10px] font-bold text-textMuted uppercase tracking-widest px-3 py-2 border-b border-borderSubtle/20 mb-1 !important;
+  @apply text-[11px] font-bold text-textMuted uppercase tracking-wider px-2 py-1.5 !important;
+  color: var(--text-muted) !important;
 }
 
 .arimark-crepe-host .milkdown-slash-menu .menu-group li {
-  @apply transition-colors !important;
+  @apply flex items-center gap-2.5 px-2 py-1.5 rounded-[4px] cursor-pointer transition-colors !important;
   color: var(--text-main) !important;
+  min-width: unset !important;
+  height: 32px !important; 
 }
 
 .arimark-crepe-host .milkdown-slash-menu .menu-group li.active,
@@ -101,21 +100,49 @@ defineEmits(["update:modelValue", "save", "title-change"]);
   background-color: var(--bg-muted) !important;
 }
 
+/* Icon Precision Fix: Overriding Crepe's hardcoded SVG weights */
 .arimark-crepe-host .milkdown-slash-menu .menu-group li svg {
-  color: var(--text-muted) !important;
+  @apply w-[18px] h-[18px] !important; 
   fill: var(--text-muted) !important;
+  color: var(--text-muted) !important;
+  /* Nuclear suppression of heavy paths */
+  stroke: none !important;
+  opacity: 0.6;
+  transition: all 0.2s ease;
+}
+
+/* Ensure paths themselves are not thick */
+.arimark-crepe-host .milkdown-slash-menu .menu-group li svg path {
+  fill: currentColor !important;
+}
+
+.arimark-crepe-host .milkdown-slash-menu .menu-group li > span {
+  @apply text-[13px] !important;
+  line-height: 1 !important;
 }
 
 .arimark-crepe-host .milkdown-slash-menu .menu-group li.active svg,
 .arimark-crepe-host .milkdown-slash-menu .menu-group li:hover svg {
-  color: var(--action-primary) !important;
   fill: var(--action-primary) !important;
+  color: var(--action-primary) !important;
+  opacity: 1;
 }
 
-/* 5. Block Handles & Ghost Placeholder */
+.arimark-crepe-host .milkdown-slash-menu .menu-group li.active > span {
+  @apply text-actionPrimary font-medium !important;
+}
+
+/* 4. Block Handles Alignment */
+.arimark-crepe-host .milkdown-block-handle .operation-item {
+  @apply rounded-[4px] transition-colors !important;
+  width: 28px !important;
+  height: 28px !important;
+}
+
 .arimark-crepe-host .milkdown-block-handle .operation-item svg {
+  @apply w-[18px] h-[18px] !important;
   fill: var(--text-muted) !important;
-  opacity: 0.3;
+  opacity: 0.25;
 }
 
 .arimark-crepe-host .milkdown-block-handle .operation-item:hover svg {
@@ -123,6 +150,7 @@ defineEmits(["update:modelValue", "save", "title-change"]);
   opacity: 1;
 }
 
+/* 5. Ghost Placeholder */
 .arimark-crepe-host .ProseMirror .placeholder {
   @apply text-textMuted pointer-events-none absolute italic !important;
   color: var(--text-muted) !important;
