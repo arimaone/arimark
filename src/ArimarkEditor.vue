@@ -1,12 +1,13 @@
 <script setup>
-import { onMounted, onUnmounted, ref, watch } from "vue";
+import { onMounted, onUnmounted, ref, watch, nextTick } from "vue";
 import { Crepe } from "@milkdown/crepe";
-import { editorViewCtx } from "@milkdown/core";
+import { editorViewCtx, prosePluginsCtx } from "@milkdown/core";
 import { listenerCtx } from "@milkdown/plugin-listener";
+import { Plugin, PluginKey } from "@milkdown/prose/state";
 
 const props = defineProps({
   modelValue: { type: String, default: "" },
-  placeholder: { type: String, default: "Start writing..." },
+  placeholder: { type: String, default: "/" },
   readonly: { type: Boolean, default: false },
 });
 
@@ -26,6 +27,26 @@ const extractTitle = (markdown) => {
   return "Untitled Note";
 };
 
+// 1. Default Heading 1 Plugin: Enforces H1 for the first empty line
+const arimarkDefaultH1Plugin = () => {
+  return new Plugin({
+    key: new PluginKey("arimark-default-h1"),
+    appendTransaction: (transactions, prevState, nextState) => {
+      const { doc, tr } = nextState;
+      // Enforcement logic: If doc is empty (one block, paragraph, no content)
+      if (doc.childCount === 1 && 
+          doc.firstChild.type.name === "paragraph" && 
+          doc.firstChild.content.size === 0) {
+        const headingType = nextState.schema.nodes.heading;
+        if (headingType) {
+          return tr.setNodeMarkup(0, headingType, { level: 1 });
+        }
+      }
+      return null;
+    }
+  });
+};
+
 // Optimized Focus Trigger
 const forceFocus = () => {
   if (!crepe || props.readonly) return;
@@ -34,12 +55,9 @@ const forceFocus = () => {
       const view = ctx.get(editorViewCtx);
       if (view) {
         view.focus();
-        console.log("Arimark: Focus acquired successfully.");
       }
     });
-  } catch (e) {
-    console.warn("Arimark: Focus attempt failed, will retry.");
-  }
+  } catch (e) {}
 };
 
 onMounted(async () => {
@@ -61,7 +79,7 @@ onMounted(async () => {
     }
   });
 
-  // 2. Add Listeners
+  // 2. Add Listeners and Enforcement Plugins
   crepe.editor.config((ctx) => {
     const listener = ctx.get(listenerCtx);
     listener.markdownUpdated((ctx, markdown, prevMarkdown) => {
@@ -70,12 +88,26 @@ onMounted(async () => {
         emit("title-change", extractTitle(markdown));
       }
     });
+
+    ctx.update(prosePluginsCtx, (prev) => [...prev, arimarkDefaultH1Plugin()]);
   });
 
   // 3. Create
   await crepe.create();
 
-  // 4. Robust Multi-stage Focus
+  // 4. Force initial H1 state if starting fresh
+  if (!props.modelValue || !props.modelValue.trim()) {
+    crepe.editor.action((ctx) => {
+      const view = ctx.get(editorViewCtx);
+      const { state, dispatch } = view;
+      const headingType = state.schema.nodes.heading;
+      if (headingType && state.doc.firstChild.type.name === "paragraph") {
+        dispatch(state.tr.setNodeMarkup(0, headingType, { level: 1 }));
+      }
+    });
+  }
+
+  // 5. Focus
   forceFocus();
   setTimeout(forceFocus, 100);
   setTimeout(forceFocus, 500);
@@ -96,14 +128,10 @@ const handleKeyDown = (e) => {
     emit("save", props.modelValue);
   }
 };
-
-watch(() => props.modelValue, (newVal) => {
-  // Safe sync for external updates
-});
 </script>
 
 <template>
-  <div class="arimark-editor-wrapper">
+  <div class="arimark-editor-wrapper text-textMain">
     <div ref="editorContainer" class="arimark-crepe-host"></div>
   </div>
 </template>
