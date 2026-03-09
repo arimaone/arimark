@@ -17,21 +17,50 @@ const emit = defineEmits(["update:modelValue", "save", "title-change", "tags-cha
 const editorContainer = ref(null);
 let crepe = null;
 
-// --- 1. Remark Interceptor (The "Source of Truth" Parser) ---
-// This identifies metadata in raw markdown before rendering.
-const arimarkRemarkPlugin = $remark("arimarkRemark", () => () => (tree) => {
-  tree.children.forEach((node) => {
-    if (node.type === "paragraph") {
-      const text = node.children?.[0]?.value;
-      if (typeof text !== "string") return;
+const TITLE_LINE_RE = /^title:\s*\[(.*)\]$/;
+const TAGS_LINE_RE = /^tags:\s*\[(.*)\]$/;
 
-      if (text.startsWith("title: ")) {
-        node.type = "arimaTitle";
-        node.data = { ...node.data, value: text.replace("title: ", "").trim() };
-      } else if (text.startsWith("tags: ")) {
-        node.type = "arimaTags";
-        node.data = { ...node.data, value: text.replace("tags: ", "").trim() };
-      }
+const extractParagraphText = (node) => {
+  if (!Array.isArray(node?.children)) return "";
+  return node.children
+    .map((child) => (typeof child?.value === "string" ? child.value : ""))
+    .join("")
+    .trim();
+};
+
+const parseTitleLine = (text) => {
+  const match = text.match(TITLE_LINE_RE);
+  if (!match) return null;
+  return (match[1] ?? "").trim();
+};
+
+const parseTagsLine = (text) => {
+  const match = text.match(TAGS_LINE_RE);
+  if (!match) return null;
+  return (match[1] ?? "").trim();
+};
+
+// --- 1. Remark Interceptor (The Source of Truth) ---
+const arimarkRemarkPlugin = $remark("arimarkRemark", () => () => (tree) => {
+  let seenTitle = false;
+  let seenTags = false;
+  tree.children.forEach((node) => {
+    if (node.type !== "paragraph") return;
+    const text = extractParagraphText(node);
+
+    const titleValue = parseTitleLine(text);
+    if (titleValue !== null && !seenTitle) {
+      seenTitle = true;
+      node.type = "arimaTitle";
+      node.data = { ...node.data, value: titleValue };
+      return;
+    }
+
+    const tagsValue = parseTagsLine(text);
+    if (tagsValue !== null && !seenTags) {
+      seenTags = true;
+      node.type = "arimaTags";
+      node.data = { ...node.data, value: tagsValue };
     }
   });
 });
@@ -48,7 +77,9 @@ const titleNode = $nodeSchema("title", () => ({
     match: (node) => node.type === "arimaTitle",
     runner: (state, node, type) => {
       state.openNode(type);
-      state.addNode("text", undefined, node.data.value || "Untitled Note");
+      if (node.data?.value) {
+        state.addText(node.data.value);
+      }
       state.closeNode();
     },
   },
@@ -56,7 +87,7 @@ const titleNode = $nodeSchema("title", () => ({
     match: (node) => node.type.name === "title",
     runner: (state, node) => {
       state.openNode("paragraph");
-      state.addNode("text", undefined, "title: " + node.textContent);
+      state.addNode("text", undefined, `title: [${node.textContent}]`);
       state.closeNode();
     },
   },
@@ -82,7 +113,10 @@ const tagsNode = $nodeSchema("tags", () => ({
   parseMarkdown: {
     match: (node) => node.type === "arimaTags",
     runner: (state, node, type) => {
-      const values = node.data.value.split(",").map(v => v.trim()).filter(v => !!v);
+      const values = (node.data?.value || "")
+        .split(",")
+        .map(v => v.trim())
+        .filter(v => !!v);
       state.addNode(type, { values });
     },
   },
@@ -90,13 +124,13 @@ const tagsNode = $nodeSchema("tags", () => ({
     match: (node) => node.type.name === "tags",
     runner: (state, node) => {
       state.openNode("paragraph");
-      state.addNode("text", undefined, "tags: " + node.attrs.values.join(", "));
+      state.addNode("text", undefined, `tags: [${node.attrs.values.join(", ")}]`);
       state.closeNode();
     },
   }
 }));
 
-// --- 3. Tags NodeView (Sovereign Interaction) ---
+// --- 3. Tags NodeView ---
 
 class TagsNodeView {
   constructor(node, view, getPos) {
@@ -111,8 +145,6 @@ class TagsNodeView {
 
   render() {
     this.dom.innerHTML = "";
-    
-    // Pills
     this.node.attrs.values.forEach((tag, index) => {
       const pill = document.createElement("span");
       pill.classList.add("tag-pill");
@@ -128,7 +160,6 @@ class TagsNodeView {
       this.dom.appendChild(pill);
     });
 
-    // Input
     const input = document.createElement("span");
     input.contentEditable = "true";
     input.classList.add("tag-input-area");
