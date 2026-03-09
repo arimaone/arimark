@@ -7,7 +7,7 @@ defineProps({
   readonly: { type: Boolean, default: false },
 });
 
-defineEmits(["update:modelValue", "save", "title-change"]);
+defineEmits(["update:modelValue", "save", "title-change", "tags-change"]);
 </script>
 
 <template>
@@ -20,6 +20,7 @@ defineEmits(["update:modelValue", "save", "title-change"]);
         @update:modelValue="$emit('update:modelValue', $event)"
         @save="$emit('save', $event)"
         @title-change="$emit('title-change', $event)"
+        @tags-change="$emit('tags-change', $event)"
       />
     </div>
   </div>
@@ -69,7 +70,7 @@ defineEmits(["update:modelValue", "save", "title-change"]);
   min-height: 70vh;
 }
 
-/* 3. Innovative Typographic Ghost Indicators (Right-Side) */
+/* 3. Sovereign Title & Metadata Indicators */
 .arimark-crepe-host .ProseMirror > * {
   position: relative !important;
 }
@@ -78,26 +79,44 @@ defineEmits(["update:modelValue", "save", "title-change"]);
   position: absolute;
   right: -80px; 
   font-size: 1rem !important;
-  @apply font-bold text-textMuted uppercase tracking-wider pointer-events-none select-none !important;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  pointer-events: none;
+  user-select: none;
   opacity: 0.15;
   transition: all 0.2s ease;
   font-family: 'Source Sans 3', sans-serif !important;
   white-space: nowrap;
 }
 
+/* Sovereign Title Styling */
+.arimark-crepe-host .arima-title-block {
+  font-size: 2.5rem !important;
+  font-weight: 800 !important;
+  letter-spacing: -0.02em !important;
+  margin-bottom: 2.5rem !important;
+  color: var(--text-main) !important;
+  line-height: 1.2 !important;
+}
+
 .arimark-crepe-host .ProseMirror > p::after { content: "P"; top: 4px; }
 .arimark-crepe-host .ProseMirror > h1::after { content: "H1"; top: 12px; }
 .arimark-crepe-host .ProseMirror > h2::after { content: "H2"; top: 10px; }
 .arimark-crepe-host .ProseMirror > h3::after { content: "H3"; top: 8px; }
-.arimark-crepe-host .ProseMirror > blockquote::after { content: "QUOTE"; top: 4px; }
-.arimark-crepe-host .ProseMirror > hr::after { content: "DIVIDER"; top: -10px; }
-.arimark-crepe-host .ProseMirror > ul::after { content: "BULLET"; top: 4px; }
-.arimark-crepe-host .ProseMirror > ol::after { content: "ORDERED"; top: 4px; }
+.arimark-crepe-host .ProseMirror > .blockquote::after { content: "QUOTE"; top: 4px; }
+.arimark-crepe-host .ProseMirror > .hr::after { content: "DIVIDER"; top: -10px; }
+.arimark-crepe-host .ProseMirror > .bullet-list::after { content: "LIST"; top: 4px; }
+.arimark-crepe-host .ProseMirror > .ordered-list::after { content: "NUMS"; top: 4px; }
 .arimark-crepe-host .ProseMirror > .task-list::after { content: "TASK"; top: 4px; }
-.arimark-crepe-host .ProseMirror > .milkdown-image-block::after { content: "IMAGE"; top: 4px; }
-.arimark-crepe-host .ProseMirror > .milkdown-code-block::after { content: "CODE"; top: 4px; }
-.arimark-crepe-host .ProseMirror > .milkdown-table::after,
-.arimark-crepe-host .ProseMirror > .milkdown-table-block::after { content: "TABLE"; top: 4px; }
+.arimark-crepe-host .ProseMirror > .image-block::after { content: "IMAGE"; top: 4px; }
+.arimark-crepe-host .ProseMirror > .code-mirror::after { content: "CODE"; top: 4px; }
+.arimark-crepe-host .ProseMirror > .table-block::after { content: "TABLE"; top: 4px; }
+
+/* Metadata Node Special Indicators */
+.arimark-crepe-host .ProseMirror > .arima-title-block::after { content: "TITLE"; color: var(--action-primary); opacity: 0.4; top: 1.2rem; }
+.arimark-crepe-host .ProseMirror > .arima-tags-block::after { content: "TAGS"; color: var(--action-primary); opacity: 0.4; top: 1.5rem; }
 
 .arimark-crepe-host .ProseMirror > *:hover::after,
 .arimark-crepe-host .ProseMirror > *.ProseMirror-selectednode::after {
@@ -105,32 +124,92 @@ defineEmits(["update:modelValue", "save", "title-change"]);
   color: var(--action-primary) !important;
 }
 
-/* 4. Sidebar-Style Slash Menu & Floating UI */
+/* 4. Arima Tags Block Visuals - Minimalist Metadata */
+.arimark-crepe-host .arima-tags-block {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  align-items: center !important;
+  gap: 8px !important;
+  padding: 24px 0 !important;
+  border-top: 1px solid rgba(var(--border-subtle-rgb, 0,0,0), 0.1) !important;
+  margin-top: 48px !important;
+  background: transparent !important;
+  min-height: 32px !important;
+}
+
+.arimark-crepe-host .arima-tags-block .tag-pill {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  padding: 4px 10px !important;
+  background-color: var(--bg-muted) !important;
+  border: 1px solid var(--border-subtle) !important;
+  border-radius: 9999px !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  color: var(--text-muted) !important;
+  transition: all 0.2s ease !important;
+  user-select: none !important;
+}
+
+.arimark-crepe-host .arima-tags-block .tag-pill:hover {
+  color: var(--text-main) !important;
+  border-color: var(--action-primary) !important;
+  background-color: var(--bg-main) !important;
+}
+
+.arimark-crepe-host .arima-tags-block .tag-pill button {
+  border: none !important;
+  background: transparent !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  cursor: pointer !important;
+  font-size: 14px !important;
+  line-height: 1 !important;
+  color: inherit !important;
+  opacity: 0.5 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.arimark-crepe-host .arima-tags-block .tag-pill button:hover {
+  opacity: 1 !important;
+  color: var(--action-danger) !important;
+}
+
+.arimark-crepe-host .tag-input-area {
+  font-size: 13px !important;
+  color: var(--text-main) !important;
+  min-width: 120px !important;
+  outline: none !important;
+  caret-color: var(--action-primary) !important;
+  padding: 4px 0 !important;
+}
+
+.arimark-crepe-host .tag-input-area:empty::before {
+  content: attr(data-placeholder);
+  color: var(--text-muted) !important;
+  opacity: 0.3 !important;
+  font-style: italic !important;
+  pointer-events: none !important;
+}
+
+/* 5. Slash Menu & Formatting Toolbar */
 .arimark-crepe-host .milkdown-slash-menu {
-  @apply bg-surfaceMain border border-borderSubtle rounded-[6px] font-sans !important;
   background-color: var(--bg-main) !important;
   border: 1px solid var(--border-subtle) !important;
+  border-radius: 8px !important;
   box-shadow: 0 12px 40px -12px rgba(0, 0, 0, 0.2) !important;
   padding: 4px !important;
   min-width: 200px !important; 
   z-index: 1000 !important;
 }
 
-/* 5. Slash Menu Items */
-.arimark-crepe-host .milkdown-slash-menu .menu-group li {
-  @apply flex items-center gap-2.5 px-2 py-1.5 rounded-[4px] cursor-pointer transition-colors !important;
-  color: var(--text-main) !important;
-  height: 32px !important;
-}
-
-.arimark-crepe-host .milkdown-slash-menu .menu-group li.active,
-.arimark-crepe-host .milkdown-slash-menu .menu-group li:hover {
-  background-color: var(--bg-muted) !important;
-}
-
-/* 6. Formatting Toolbar */
 .arimark-crepe-host .milkdown-toolbar {
-  @apply bg-surfaceMain border border-borderSubtle rounded-[6px] font-sans !important;
+  background-color: var(--bg-main) !important;
+  border: 1px solid var(--border-subtle) !important;
+  border-radius: 6px !important;
   box-shadow: 0 12px 40px -12px rgba(0, 0, 0, 0.2) !important;
   padding: 4px !important;
   gap: 2px !important;
@@ -145,15 +224,17 @@ defineEmits(["update:modelValue", "save", "title-change"]);
   pointer-events: auto !important;
 }
 
-/* 7. Ghost Placeholder */
+/* 6. Ghost Placeholder */
 .arimark-crepe-host .ProseMirror .placeholder {
-  @apply text-textMuted pointer-events-none absolute italic !important;
   color: var(--text-muted) !important;
   opacity: 0.5 !important;
+  font-style: italic !important;
+  pointer-events: none !important;
+  position: absolute !important;
   left: 0 !important;
 }
 
-/* 8. Cleanup */
+/* 7. Cleanup */
 .arimark-crepe-host .milkdown-menu {
   display: none !important;
 }
