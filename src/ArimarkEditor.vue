@@ -70,7 +70,7 @@ onMounted(async () => {
     features: {
       [Crepe.Feature.BlockEdit]: true,
       [Crepe.Feature.Placeholder]: true,
-      [Crepe.Feature.Toolbar]: false,
+      [Crepe.Feature.Toolbar]: true, // Enabled for floating formatting menu
     },
     featureConfigs: {
       placeholder: {

@@ -165,9 +165,54 @@ defineEmits(["update:modelValue", "save", "title-change"]);
   left: 0 !important;
 }
 
-/* 6. Cleanup */
-.arimark-crepe-host .milkdown-menu,
+/* 6. Cleanup & Professional UI Polish */
+/* Skin the Floating Formatting Menu (Crepe Toolbar) */
 .arimark-crepe-host .milkdown-toolbar {
+  @apply bg-surfaceMain border border-borderSubtle rounded-[6px] font-sans !important;
+  background-color: var(--bg-main) !important;
+  border: 1px solid var(--border-subtle) !important;
+  box-shadow: 0 12px 40px -12px rgba(0, 0, 0, 0.2) !important;
+  padding: 4px !important;
+  gap: 2px !important;
+  display: flex !important;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  transform: translateY(4px);
+}
+
+.arimark-crepe-host .milkdown-toolbar[data-show="true"] {
+  opacity: 1 !important;
+  pointer-events: auto !important;
+  transform: translateY(0);
+}
+
+.arimark-crepe-host .milkdown-toolbar .button {
+  @apply w-8 h-8 flex items-center justify-center rounded-[4px] transition-colors cursor-pointer !important;
+  color: var(--text-muted) !important;
+}
+
+.arimark-crepe-host .milkdown-toolbar .button:hover {
+  background-color: var(--bg-muted) !important;
+  color: var(--action-primary) !important;
+}
+
+.arimark-crepe-host .milkdown-toolbar .button.active {
+  background-color: var(--bg-muted) !important;
+  color: var(--action-primary) !important;
+}
+
+.arimark-crepe-host .milkdown-toolbar .button svg {
+  @apply w-[18px] h-[18px] !important;
+  fill: currentColor !important;
+}
+
+.arimark-crepe-host .milkdown-toolbar .divider {
+  @apply w-[1px] h-4 bg-borderSubtle/50 mx-1 !important;
+}
+
+/* Ensure the fixed top menu remains hidden if Crepe tries to show it */
+.arimark-crepe-host .milkdown-menu {
   display: none !important;
 }
 </style>
