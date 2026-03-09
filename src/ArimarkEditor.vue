@@ -27,59 +27,37 @@ const extractTitle = (markdown) => {
   return "Untitled Note";
 };
 
-// 1. Default Heading 1 Plugin: Enforces H1 for the first empty line
+// 1. Default Heading 1 Enforcement
 const arimarkDefaultH1Plugin = () => {
   return new Plugin({
     key: new PluginKey("arimark-default-h1"),
     appendTransaction: (transactions, prevState, nextState) => {
       const { doc, tr } = nextState;
-      // Enforcement logic: If doc is empty (one block, paragraph, no content)
-      if (doc.childCount === 1 && 
-          doc.firstChild.type.name === "paragraph" && 
-          doc.firstChild.content.size === 0) {
+      if (doc.childCount === 1 && doc.firstChild.type.name === "paragraph" && doc.firstChild.content.size === 0) {
         const headingType = nextState.schema.nodes.heading;
-        if (headingType) {
-          return tr.setNodeMarkup(0, headingType, { level: 1 });
-        }
+        if (headingType) return tr.setNodeMarkup(0, headingType, { level: 1 });
       }
       return null;
     }
   });
 };
 
-// Optimized Focus Trigger
-const forceFocus = () => {
-  if (!crepe || props.readonly) return;
-  try {
-    crepe.editor.action((ctx) => {
-      const view = ctx.get(editorViewCtx);
-      if (view) {
-        view.focus();
-      }
-    });
-  } catch (e) {}
-};
-
 onMounted(async () => {
   if (!editorContainer.value) return;
 
-  // 1. Initialize Crepe
   crepe = new Crepe({
     root: editorContainer.value,
     defaultValue: props.modelValue,
     features: {
       [Crepe.Feature.BlockEdit]: true,
       [Crepe.Feature.Placeholder]: true,
-      [Crepe.Feature.Toolbar]: true, // Enabled for floating formatting menu
+      [Crepe.Feature.Toolbar]: true,
     },
     featureConfigs: {
-      placeholder: {
-        text: props.placeholder,
-      }
+      placeholder: { text: props.placeholder }
     }
   });
 
-  // 2. Add Listeners and Enforcement Plugins
   crepe.editor.config((ctx) => {
     const listener = ctx.get(listenerCtx);
     listener.markdownUpdated((ctx, markdown, prevMarkdown) => {
@@ -89,36 +67,37 @@ onMounted(async () => {
       }
     });
 
-    ctx.update(prosePluginsCtx, (prev) => [...prev, arimarkDefaultH1Plugin()]);
+    ctx.update(prosePluginsCtx, (prev) => [
+      ...prev, 
+      arimarkDefaultH1Plugin()
+    ]);
   });
 
-  // 3. Create
   await crepe.create();
 
-  // 4. Force initial H1 state if starting fresh
   if (!props.modelValue || !props.modelValue.trim()) {
     crepe.editor.action((ctx) => {
       const view = ctx.get(editorViewCtx);
-      const { state, dispatch } = view;
-      const headingType = state.schema.nodes.heading;
-      if (headingType && state.doc.firstChild.type.name === "paragraph") {
-        dispatch(state.tr.setNodeMarkup(0, headingType, { level: 1 }));
+      const headingType = view.state.schema.nodes.heading;
+      if (headingType && view.state.doc.firstChild.type.name === "paragraph") {
+        view.dispatch(view.state.tr.setNodeMarkup(0, headingType, { level: 1 }));
       }
     });
   }
 
-  // 5. Focus
-  forceFocus();
+  const forceFocus = () => {
+    crepe?.editor.action((ctx) => {
+      const view = ctx.get(editorViewCtx);
+      if (view && !props.readonly) view.focus();
+    });
+  };
   setTimeout(forceFocus, 100);
-  setTimeout(forceFocus, 500);
 
   window.addEventListener("keydown", handleKeyDown);
 });
 
 onUnmounted(() => {
-  if (crepe) {
-    crepe.destroy();
-  }
+  if (crepe) crepe.destroy();
   window.removeEventListener("keydown", handleKeyDown);
 });
 

@@ -13,8 +13,8 @@ defineEmits(["update:modelValue", "save", "title-change"]);
 <template>
   <div class="arimark-container w-full font-sans">
     <div class="w-full">
-      <ArimarkEditor
-        :modelValue="modelValue"
+      <ArimarkEditor 
+        :modelValue="modelValue" 
         :placeholder="placeholder"
         :readonly="readonly"
         @update:modelValue="$emit('update:modelValue', $event)"
@@ -43,10 +43,10 @@ defineEmits(["update:modelValue", "save", "title-change"]);
   --crepe-color-hover: var(--bg-muted) !important;
   --crepe-color-selected: var(--action-hover) !important;
   --crepe-color-inline-area: var(--bg-muted) !important;
-
+  
   --crepe-font-default: 'Source Sans 3', sans-serif !important;
   --crepe-font-title: 'Source Sans 3', sans-serif !important;
-
+  
   --crepe-shadow-1: none !important;
   --crepe-shadow-2: none !important;
 
@@ -76,16 +76,15 @@ defineEmits(["update:modelValue", "save", "title-change"]);
 
 .arimark-crepe-host .ProseMirror > *::after {
   position: absolute;
-  right: -80px; /* More space for longer labels */
+  right: -80px; 
   font-size: 1rem !important;
   @apply font-bold text-textMuted uppercase tracking-wider pointer-events-none select-none !important;
-  opacity: 0.15; /* Subtly reduced from 0.3 */
+  opacity: 0.15;
   transition: all 0.2s ease;
   font-family: 'Source Sans 3', sans-serif !important;
   white-space: nowrap;
 }
 
-/* Precise Mapping based on real Crepe DOM tags and classes */
 .arimark-crepe-host .ProseMirror > p::after { content: "P"; top: 4px; }
 .arimark-crepe-host .ProseMirror > h1::after { content: "H1"; top: 12px; }
 .arimark-crepe-host .ProseMirror > h2::after { content: "H2"; top: 10px; }
@@ -100,29 +99,24 @@ defineEmits(["update:modelValue", "save", "title-change"]);
 .arimark-crepe-host .ProseMirror > .milkdown-table::after,
 .arimark-crepe-host .ProseMirror > .milkdown-table-block::after { content: "TABLE"; top: 4px; }
 
-/* Highlight state */
 .arimark-crepe-host .ProseMirror > *:hover::after,
 .arimark-crepe-host .ProseMirror > *.ProseMirror-selectednode::after {
-  opacity: 0.4 !important; /* Subtly reduced from 0.8 */
+  opacity: 0.4 !important;
   color: var(--action-primary) !important;
 }
 
-/* 4. Sidebar-Style Slash Menu */
+/* 4. Sidebar-Style Slash Menu & Floating UI */
 .arimark-crepe-host .milkdown-slash-menu {
   @apply bg-surfaceMain border border-borderSubtle rounded-[6px] font-sans !important;
   background-color: var(--bg-main) !important;
   border: 1px solid var(--border-subtle) !important;
   box-shadow: 0 12px 40px -12px rgba(0, 0, 0, 0.2) !important;
   padding: 4px !important;
-  min-width: 200px !important;
+  min-width: 200px !important; 
   z-index: 1000 !important;
 }
 
-.arimark-crepe-host .milkdown-slash-menu .menu-groups .menu-group h6 {
-  @apply text-[11px] font-bold text-textMuted uppercase tracking-wider px-2 py-1.5 !important;
-  color: var(--text-muted) !important;
-}
-
+/* 5. Slash Menu Items */
 .arimark-crepe-host .milkdown-slash-menu .menu-group li {
   @apply flex items-center gap-2.5 px-2 py-1.5 rounded-[4px] cursor-pointer transition-colors !important;
   color: var(--text-main) !important;
@@ -134,43 +128,9 @@ defineEmits(["update:modelValue", "save", "title-change"]);
   background-color: var(--bg-muted) !important;
 }
 
-.arimark-crepe-host .milkdown-slash-menu .menu-group li svg {
-  @apply w-[18px] h-[18px] !important;
-  fill: var(--text-muted) !important;
-  stroke: none !important;
-  opacity: 0.8;
-}
-
-.arimark-crepe-host .milkdown-slash-menu .menu-group li.active svg {
-  fill: var(--action-primary) !important;
-  opacity: 1;
-}
-
-/* 5. Block Handles & Ghost Placeholder */
-.arimark-crepe-host .milkdown-block-handle .operation-item svg {
-  @apply w-[18px] h-[18px] !important;
-  fill: var(--text-muted) !important;
-  opacity: 0.3;
-}
-
-.arimark-crepe-host .milkdown-block-handle .operation-item:hover svg {
-  fill: var(--action-primary) !important;
-  opacity: 1;
-}
-
-.arimark-crepe-host .ProseMirror .placeholder {
-  @apply text-textMuted pointer-events-none absolute italic !important;
-  color: var(--text-muted) !important;
-  opacity: 0.5 !important;
-  left: 0 !important;
-}
-
-/* 6. Cleanup & Professional UI Polish */
-/* Skin the Floating Formatting Menu (Crepe Toolbar) */
+/* 6. Formatting Toolbar */
 .arimark-crepe-host .milkdown-toolbar {
   @apply bg-surfaceMain border border-borderSubtle rounded-[6px] font-sans !important;
-  background-color: var(--bg-main) !important;
-  border: 1px solid var(--border-subtle) !important;
   box-shadow: 0 12px 40px -12px rgba(0, 0, 0, 0.2) !important;
   padding: 4px !important;
   gap: 2px !important;
@@ -178,40 +138,22 @@ defineEmits(["update:modelValue", "save", "title-change"]);
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.2s ease, transform 0.2s ease;
-  transform: translateY(4px);
 }
 
 .arimark-crepe-host .milkdown-toolbar[data-show="true"] {
   opacity: 1 !important;
   pointer-events: auto !important;
-  transform: translateY(0);
 }
 
-.arimark-crepe-host .milkdown-toolbar .button {
-  @apply w-8 h-8 flex items-center justify-center rounded-[4px] transition-colors cursor-pointer !important;
+/* 7. Ghost Placeholder */
+.arimark-crepe-host .ProseMirror .placeholder {
+  @apply text-textMuted pointer-events-none absolute italic !important;
   color: var(--text-muted) !important;
+  opacity: 0.5 !important;
+  left: 0 !important;
 }
 
-.arimark-crepe-host .milkdown-toolbar .button:hover {
-  background-color: var(--bg-muted) !important;
-  color: var(--action-primary) !important;
-}
-
-.arimark-crepe-host .milkdown-toolbar .button.active {
-  background-color: var(--bg-muted) !important;
-  color: var(--action-primary) !important;
-}
-
-.arimark-crepe-host .milkdown-toolbar .button svg {
-  @apply w-[18px] h-[18px] !important;
-  fill: currentColor !important;
-}
-
-.arimark-crepe-host .milkdown-toolbar .divider {
-  @apply w-[1px] h-4 bg-borderSubtle/50 mx-1 !important;
-}
-
-/* Ensure the fixed top menu remains hidden if Crepe tries to show it */
+/* 8. Cleanup */
 .arimark-crepe-host .milkdown-menu {
   display: none !important;
 }
