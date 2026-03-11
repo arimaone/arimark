@@ -1,24 +1,17 @@
 ---
-name: Bug Report
-about: Create a report to help us fix something that is broken.
-title: '[BUG] '
-labels: bug
+name: Editor Bug
+about: Report a ProseMirror crash, Markdown parsing error, or selection bug
+title: "[Bug] "
+labels: bug, editor
 assignees: ''
 ---
+**Title:** [Bug] <Concise Name>
 
-### 1. The Bug
-(Provide a clear and concise description of what is broken.)
+**Root Cause:**
+<Explanation. E.g., ProseMirror transaction failure, DOM to Markdown serialization mismatch>
 
-### 2. Steps to Reproduce
-1. Go to '...'
-2. Click on '....'
-3. Type '....'
-4. See error
+**Fix Strategy:**
+<The exact Milkdown plugin or ProseMirror transaction fix>
 
-### 3. Expected vs. Actual
-* **Expected:** (What should have happened?)
-* **Actual:** (What actually happened?)
-
-### 4. Environment
-* **OS:** (e.g., Pop!_OS 24.04, Android)
-* **Browser/App:** (e.g., Chrome, Extension)
+**Verification:**
+<How the Builder should test cursor selection and Markdown output to ensure the bug is dead>
