@@ -1,5 +1,7 @@
 # @arimaone/arimark
 
+[![CI](https://github.com/arimaone/arimark/actions/workflows/ci.yml/badge.svg)](https://github.com/arimaone/arimark/actions/workflows/ci.yml)
+[![Tests](https://img.shields.io/badge/tests-24%20passed-brightgreen.svg)](https://github.com/arimaone/arimark/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![Vue 3](https://img.shields.io/badge/Vue-3.x-42b883.svg)](https://vuejs.org/)
 [![Milkdown](https://img.shields.io/badge/Milkdown-v7-8b5cf6.svg)](https://milkdown.dev/)
