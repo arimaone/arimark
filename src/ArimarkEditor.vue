@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, onUnmounted, ref, watch, h, render } from "vue";
+import { onMounted, onUnmounted, ref } from "vue";
 import { Crepe } from "@milkdown/crepe";
 import { editorViewCtx, prosePluginsCtx, commandsCtx } from "@milkdown/core";
 import { listenerCtx } from "@milkdown/plugin-listener";
@@ -10,15 +10,67 @@ const props = defineProps({
   modelValue: { type: String, default: "" },
   placeholder: { type: String, default: "/" },
   readonly: { type: Boolean, default: false },
+  metadataFormat: { type: String, default: "frontmatter" }, // 'frontmatter' | 'bracket'
 });
 
 const emit = defineEmits(["update:modelValue", "save", "title-change", "tags-change"]);
 
 const editorContainer = ref(null);
 let crepe = null;
+let lastEmittedMarkdown = "";
 
 const TITLE_LINE_RE = /^title:\s*\[(.*)\]$/;
 const TAGS_LINE_RE = /^tags:\s*\[(.*)\]$/;
+const FRONTMATTER_RE = /^---\r?\n([\s\S]*?)\r?\n---\r?\n?/;
+
+const parseFrontmatter = (markdown) => {
+  if (typeof markdown !== "string") return null;
+  const match = markdown.match(FRONTMATTER_RE);
+  if (!match) return null;
+  const yaml = match[1];
+  const body = markdown.slice(match[0].length);
+
+  let title = "";
+  let tags = [];
+
+  const titleMatch = yaml.match(/^title:\s*(.*)$/m);
+  if (titleMatch) {
+    title = titleMatch[1].trim().replace(/^["']|["']$/g, "").trim();
+  }
+
+  const tagsInlineMatch = yaml.match(/^tags:\s*\[(.*)\]$/m);
+  if (tagsInlineMatch) {
+    tags = tagsInlineMatch[1]
+      .split(",")
+      .map((t) => t.trim().replace(/^["']|["']$/g, "").trim())
+      .filter(Boolean);
+  } else {
+    const tagsListMatch = yaml.match(/^tags:\s*\r?\n((?:\s*-\s*.*\r?\n?)+)/m);
+    if (tagsListMatch) {
+      tags = tagsListMatch[1]
+        .split("\n")
+        .map((l) => l.replace(/^\s*-\s*/, "").trim().replace(/^["']|["']$/g, "").trim())
+        .filter(Boolean);
+    }
+  }
+
+  return { title, tags, body };
+};
+
+const prepareInputMarkdown = (rawMarkdown) => {
+  if (!rawMarkdown || typeof rawMarkdown !== "string") return "";
+  const fm = parseFrontmatter(rawMarkdown);
+  if (!fm) return rawMarkdown;
+
+  let prefix = "";
+  if (fm.title) {
+    prefix += `title: [${fm.title}]\n\n`;
+  }
+  if (fm.tags.length > 0) {
+    prefix += `tags: [${fm.tags.join(", ")}]\n\n`;
+  }
+  return prefix + fm.body.trimStart();
+};
 
 const extractParagraphText = (node) => {
   if (!Array.isArray(node?.children)) return "";
@@ -38,6 +90,52 @@ const parseTagsLine = (text) => {
   const match = text.match(TAGS_LINE_RE);
   if (!match) return null;
   return (match[1] ?? "").trim();
+};
+
+const formatOutputMarkdown = (markdown, format) => {
+  if (!markdown || typeof markdown !== "string") return "";
+  if (format === "bracket") return markdown;
+
+  let title = "";
+  let tags = [];
+
+  const lines = markdown.split("\n");
+  const remainingLines = [];
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    const titleVal = parseTitleLine(line.trim());
+    if (titleVal !== null && !title) {
+      title = titleVal;
+      continue;
+    }
+    const tagsVal = parseTagsLine(line.trim());
+    if (tagsVal !== null && tags.length === 0) {
+      tags = tagsVal
+        .split(",")
+        .map((t) => t.trim())
+        .filter(Boolean);
+      continue;
+    }
+    remainingLines.push(line);
+  }
+
+  const body = remainingLines.join("\n").trim();
+
+  if (!title && tags.length === 0) {
+    return body;
+  }
+
+  let fm = "---\n";
+  if (title) {
+    fm += `title: "${title.replace(/"/g, '\\"')}"\n`;
+  }
+  if (tags.length > 0) {
+    fm += `tags: [${tags.map((t) => `"${t.replace(/"/g, '\\"')}"`).join(", ")}]\n`;
+  }
+  fm += "---\n\n";
+
+  return fm + body;
 };
 
 // --- 1. Remark Interceptor (The Source of Truth) ---
@@ -311,9 +409,11 @@ const arimarkMetadataPlugin = () => {
 
 onMounted(async () => {
   if (!editorContainer.value) return;
+  const initialMarkdown = prepareInputMarkdown(props.modelValue);
+  
   crepe = new Crepe({
     root: editorContainer.value,
-    defaultValue: props.modelValue,
+    defaultValue: initialMarkdown,
     features: {
       [Crepe.Feature.BlockEdit]: true,
       [Crepe.Feature.Placeholder]: true,
@@ -334,7 +434,11 @@ onMounted(async () => {
   crepe.editor.config((ctx) => {
     const listener = ctx.get(listenerCtx);
     listener.markdownUpdated((ctx, markdown, prevMarkdown) => {
-      if (markdown !== prevMarkdown) emit("update:modelValue", markdown);
+      if (markdown !== prevMarkdown) {
+        const formatted = formatOutputMarkdown(markdown, props.metadataFormat);
+        lastEmittedMarkdown = formatted;
+        emit("update:modelValue", formatted);
+      }
     });
     ctx.update(prosePluginsCtx, (prev) => [...prev, arimarkMetadataPlugin()]);
   })
@@ -359,13 +463,14 @@ onUnmounted(() => {
 const handleKeyDown = (e) => {
   if ((e.ctrlKey || e.metaKey) && e.key === "s") {
     e.preventDefault();
-    emit("save", props.modelValue);
+    const saveContent = lastEmittedMarkdown || formatOutputMarkdown(props.modelValue, props.metadataFormat);
+    emit("save", saveContent);
   }
 };
 </script>
 
 <template>
-  <div class="arimark-editor-wrapper text-textMain">
+  <div class="arimark-editor-wrapper">
     <div ref="editorContainer" class="arimark-crepe-host"></div>
   </div>
 </template>

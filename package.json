@@ -1,33 +1,64 @@
 {
-  "name": "@arima/arimark",
+  "name": "arimark",
   "version": "0.1.0",
-  "private": true,
+  "description": "A minimalist, block-based Markdown editor for Vue 3 built on Milkdown Crepe.",
+  "license": "MIT",
   "type": "module",
-  "main": "./src/index.js",
+  "main": "./dist/arimark.cjs",
+  "module": "./dist/arimark.js",
+  "types": "./dist/index.d.ts",
   "exports": {
-    ".": "./src/index.js",
-    "./*": "./src/*"
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/arimark.js",
+      "require": "./dist/arimark.cjs"
+    },
+    "./style.css": "./dist/style.css"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/arimaone/arimark.git"
+  },
+  "homepage": "https://github.com/arimaone/arimark#readme",
+  "bugs": {
+    "url": "https://github.com/arimaone/arimark/issues"
+  },
+  "keywords": [
+    "vue",
+    "vue3",
+    "markdown",
+    "editor",
+    "milkdown",
+    "crepe",
+    "prosemirror",
+    "block-editor",
+    "frontmatter"
+  ],
+  "scripts": {
+    "dev": "vite serve playground --config ./vite.config.js",
+    "build": "vite build && npm run build:types",
+    "build:types": "cp src/index.d.ts dist/index.d.ts",
+    "preview": "vite preview playground --config ./vite.config.js"
   },
   "dependencies": {
     "@milkdown/core": "^7.6.3",
     "@milkdown/crepe": "^7.6.3",
     "@milkdown/ctx": "^7.6.3",
-    "@milkdown/plugin-history": "^7.6.3",
-    "@milkdown/plugin-indent": "^7.6.3",
     "@milkdown/plugin-listener": "^7.6.3",
-    "@milkdown/plugin-slash": "^7.6.3",
-    "@milkdown/preset-commonmark": "^7.6.3",
-    "@milkdown/preset-gfm": "^7.6.3",
     "@milkdown/prose": "^7.6.3",
-    "@milkdown/transformer": "^7.6.3",
-    "@milkdown/utils": "^7.6.3",
-    "@milkdown/vue": "^7.6.3",
-    "vue": "^3.5.25"
+    "@milkdown/utils": "^7.6.3"
   },
   "peerDependencies": {
-    "vue": "^3.0.0"
+    "vue": "^3.3.0"
   },
   "devDependencies": {
-    "unocss": "^66.6.2"
+    "@vitejs/plugin-vue": "^5.2.1",
+    "vite": "^6.2.0",
+    "vue": "^3.5.25"
   }
 }
