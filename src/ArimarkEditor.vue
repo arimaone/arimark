@@ -24,6 +24,7 @@ const emit = defineEmits(["update:modelValue", "save", "title-change", "tags-cha
 
 const editorContainer = ref(null);
 let crepe = null;
+let focusTimer = null;
 let lastEmittedMarkdown = "";
 let extraYaml = {};
 
@@ -345,17 +346,32 @@ onMounted(async () => {
   .use(titleNode).use(tagsNode).use(insertTitleCommand).use(insertTagsCommand);
 
   await crepe.create();
-  setTimeout(() => {
-    crepe?.editor.action((ctx) => {
-      const view = ctx.get(editorViewCtx);
-      if (view && !props.readonly) view.focus();
-    });
+  focusTimer = setTimeout(() => {
+    try {
+      if (crepe?.editor) {
+        crepe.editor.action((ctx) => {
+          try {
+            const view = ctx.get(editorViewCtx);
+            if (view && !props.readonly) view.focus();
+          } catch (_) {}
+        });
+      }
+    } catch (_) {}
   }, 100);
   window.addEventListener("keydown", handleKeyDown);
 });
 
 onUnmounted(() => {
-  if (crepe) crepe.destroy();
+  if (focusTimer) {
+    clearTimeout(focusTimer);
+    focusTimer = null;
+  }
+  if (crepe) {
+    try {
+      crepe.destroy();
+    } catch (_) {}
+    crepe = null;
+  }
   window.removeEventListener("keydown", handleKeyDown);
 });
 
