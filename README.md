@@ -8,6 +8,8 @@
 
 A minimalist, block-based Markdown editor for the Vue 3 ecosystem, powered by Milkdown Crepe.
 
+[Live Interactive Demo](https://arimaone.github.io/arimark/)
+
 Arimark brings document metadata (Titles and Tags) directly into the interactive canvas as native visual blocks, while remaining fully interoperable with standard YAML Frontmatter used by tools like Obsidian, Astro, VitePress, Nuxt Content, and GitHub.
 
 ---

@@ -46,6 +46,7 @@
     "dev": "vite serve playground --config ./vite.config.js",
     "build": "vite build && npm run build:types",
     "build:types": "cp src/index.d.ts dist/index.d.ts",
+    "build:demo": "vite build --config vite.config.demo.js",
     "prepublishOnly": "npm test && npm run build",
     "test": "vitest run",
     "test:watch": "vitest",
