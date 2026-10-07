@@ -1,4 +1,4 @@
-# arimark
+# @arimaone/arimark
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![Vue 3](https://img.shields.io/badge/Vue-3.x-42b883.svg)](https://vuejs.org/)
@@ -13,9 +13,10 @@ It re-imagines writing by bringing **document metadata (Titles & Tags)** directl
 ## ✨ Features
 
 - **🎯 Native Metadata Blocks:** Title (H1) and Tags live inside the document canvas as interactive, keyboard-friendly blocks instead of detached external form fields.
-- **📄 Universal Frontmatter:** Reads and writes clean standard YAML Frontmatter (`--- title: ... tags: [...] ---`) or legacy bracket format.
+- **📄 Universal Frontmatter:** Reads and writes clean standard YAML Frontmatter (`--- title: ... tags: [...] ---`) or legacy bracket format. Arbitrary custom metadata fields (`description`, `author`, `date`) are preserved without data loss.
 - **⚡ Slash Commands (`/`):** Type `/` to insert headings, lists, code blocks, quotes, dividers, titles, and tags.
 - **✨ Distraction-Free Canvas:** Clean, centered Medium-style typography with subtle right-margin block indicators (`H1`, `P`, `LIST`, `CODE`).
+- **🔤 Font Agnostic:** Automatically inherits your application's typography by default (`inherit`), or customize via `--arimark-font-family`.
 - **📱 Responsive & Resilient:** Automatic mobile layout adaptation (margin indicators gracefully hide below 1024px) and robust CSS variable fallbacks.
 - **⌨️ Keyboard Shortcuts:** Supports `Ctrl+S` / `Cmd+S` save events, tag creation (`Enter`, comma, space), and backspace deletion.
 - **🧩 TypeScript Ready:** Bundled with full `.d.ts` type definitions and Volar support.
@@ -25,11 +26,11 @@ It re-imagines writing by bringing **document metadata (Titles & Tags)** directl
 ## 📦 Installation
 
 ```bash
-npm install arimark
+npm install @arimaone/arimark
 # or
-pnpm add arimark
+pnpm add @arimaone/arimark
 # or
-yarn add arimark
+yarn add @arimaone/arimark
 ```
 
 ---
@@ -39,11 +40,12 @@ yarn add arimark
 ```vue
 <script setup>
 import { ref } from "vue";
-import { Arimark } from "arimark";
-import "arimark/style.css";
+import { Arimark } from "@arimaone/arimark";
+import "@arimaone/arimark/style.css";
 
 const markdown = ref(`---
 title: "Getting Started with Arimark"
+description: "A block-based markdown editor for Vue 3."
 tags: ["vue3", "markdown", "editor"]
 ---
 
@@ -111,7 +113,7 @@ const onTagsChange = (tags) => {
 
 ## 🎨 Theming & Customization
 
-Arimark comes with sensible default colors and automatically respects your host application's CSS variables. You can easily override colors by defining:
+Arimark comes with sensible default colors and automatically inherits your host application's typography. You can easily customize it with CSS custom properties:
 
 ```css
 :root {
@@ -126,7 +128,7 @@ Arimark comes with sensible default colors and automatically respects your host 
   --action-danger: #ef4444;
 
   /* Or Arimark-specific tokens */
-  --arimark-font: 'Inter', system-ui, sans-serif;
+  --arimark-font-family: 'Inter', system-ui, sans-serif; /* Defaults to inherit */
   --arimark-action-primary: #8b5cf6;
 }
 ```
@@ -148,7 +150,10 @@ npm install
 # 3. Start the interactive playground
 npm run dev
 
-# 4. Build library distribution
+# 4. Run automated tests
+npm test
+
+# 5. Build library distribution
 npm run build
 ```
 

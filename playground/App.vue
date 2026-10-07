@@ -4,6 +4,8 @@ import { Arimark } from "../src/index.js";
 
 const initialDoc = `---
 title: "Welcome to Arimark"
+description: "A modern block editor for Vue 3."
+author: "Arima"
 tags: ["vue3", "milkdown", "markdown"]
 ---
 

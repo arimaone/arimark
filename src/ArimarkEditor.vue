@@ -5,6 +5,13 @@ import { editorViewCtx, prosePluginsCtx, commandsCtx } from "@milkdown/core";
 import { listenerCtx } from "@milkdown/plugin-listener";
 import { Plugin, PluginKey, TextSelection } from "@milkdown/prose/state";
 import { $nodeSchema, $command, $remark } from "@milkdown/utils";
+import {
+  parseFrontmatter,
+  prepareInputMarkdown,
+  formatOutputMarkdown,
+  parseTitleLine,
+  parseTagsLine,
+} from "./frontmatter.js";
 
 const props = defineProps({
   modelValue: { type: String, default: "" },
@@ -18,59 +25,7 @@ const emit = defineEmits(["update:modelValue", "save", "title-change", "tags-cha
 const editorContainer = ref(null);
 let crepe = null;
 let lastEmittedMarkdown = "";
-
-const TITLE_LINE_RE = /^title:\s*\[(.*)\]$/;
-const TAGS_LINE_RE = /^tags:\s*\[(.*)\]$/;
-const FRONTMATTER_RE = /^---\r?\n([\s\S]*?)\r?\n---\r?\n?/;
-
-const parseFrontmatter = (markdown) => {
-  if (typeof markdown !== "string") return null;
-  const match = markdown.match(FRONTMATTER_RE);
-  if (!match) return null;
-  const yaml = match[1];
-  const body = markdown.slice(match[0].length);
-
-  let title = "";
-  let tags = [];
-
-  const titleMatch = yaml.match(/^title:\s*(.*)$/m);
-  if (titleMatch) {
-    title = titleMatch[1].trim().replace(/^["']|["']$/g, "").trim();
-  }
-
-  const tagsInlineMatch = yaml.match(/^tags:\s*\[(.*)\]$/m);
-  if (tagsInlineMatch) {
-    tags = tagsInlineMatch[1]
-      .split(",")
-      .map((t) => t.trim().replace(/^["']|["']$/g, "").trim())
-      .filter(Boolean);
-  } else {
-    const tagsListMatch = yaml.match(/^tags:\s*\r?\n((?:\s*-\s*.*\r?\n?)+)/m);
-    if (tagsListMatch) {
-      tags = tagsListMatch[1]
-        .split("\n")
-        .map((l) => l.replace(/^\s*-\s*/, "").trim().replace(/^["']|["']$/g, "").trim())
-        .filter(Boolean);
-    }
-  }
-
-  return { title, tags, body };
-};
-
-const prepareInputMarkdown = (rawMarkdown) => {
-  if (!rawMarkdown || typeof rawMarkdown !== "string") return "";
-  const fm = parseFrontmatter(rawMarkdown);
-  if (!fm) return rawMarkdown;
-
-  let prefix = "";
-  if (fm.title) {
-    prefix += `title: [${fm.title}]\n\n`;
-  }
-  if (fm.tags.length > 0) {
-    prefix += `tags: [${fm.tags.join(", ")}]\n\n`;
-  }
-  return prefix + fm.body.trimStart();
-};
+let extraYaml = {};
 
 const extractParagraphText = (node) => {
   if (!Array.isArray(node?.children)) return "";
@@ -78,64 +33,6 @@ const extractParagraphText = (node) => {
     .map((child) => (typeof child?.value === "string" ? child.value : ""))
     .join("")
     .trim();
-};
-
-const parseTitleLine = (text) => {
-  const match = text.match(TITLE_LINE_RE);
-  if (!match) return null;
-  return (match[1] ?? "").trim();
-};
-
-const parseTagsLine = (text) => {
-  const match = text.match(TAGS_LINE_RE);
-  if (!match) return null;
-  return (match[1] ?? "").trim();
-};
-
-const formatOutputMarkdown = (markdown, format) => {
-  if (!markdown || typeof markdown !== "string") return "";
-  if (format === "bracket") return markdown;
-
-  let title = "";
-  let tags = [];
-
-  const lines = markdown.split("\n");
-  const remainingLines = [];
-
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i];
-    const titleVal = parseTitleLine(line.trim());
-    if (titleVal !== null && !title) {
-      title = titleVal;
-      continue;
-    }
-    const tagsVal = parseTagsLine(line.trim());
-    if (tagsVal !== null && tags.length === 0) {
-      tags = tagsVal
-        .split(",")
-        .map((t) => t.trim())
-        .filter(Boolean);
-      continue;
-    }
-    remainingLines.push(line);
-  }
-
-  const body = remainingLines.join("\n").trim();
-
-  if (!title && tags.length === 0) {
-    return body;
-  }
-
-  let fm = "---\n";
-  if (title) {
-    fm += `title: "${title.replace(/"/g, '\\"')}"\n`;
-  }
-  if (tags.length > 0) {
-    fm += `tags: [${tags.map((t) => `"${t.replace(/"/g, '\\"')}"`).join(", ")}]\n`;
-  }
-  fm += "---\n\n";
-
-  return fm + body;
 };
 
 // --- 1. Remark Interceptor (The Source of Truth) ---
@@ -170,7 +67,7 @@ const titleNode = $nodeSchema("title", () => ({
   group: "block",
   defining: true,
   parseDOM: [{ tag: 'h1[data-type="arima-title"]' }],
-  toDOM: () => ["h1", { "data-type": "arima-title", class: "arima-title-block" }, 0],
+  toDOM: () => ["h1", { "data-type": "arima-title", class: "arimark-title-block arima-title-block" }, 0],
   parseMarkdown: {
     match: (node) => node.type === "arimaTitle",
     runner: (state, node, type) => {
@@ -205,7 +102,7 @@ const tagsNode = $nodeSchema("tags", () => ({
     const div = document.createElement("div");
     div.dataset.type = "arima-tags";
     div.dataset.values = node.attrs.values.join(",");
-    div.classList.add("arima-tags-block");
+    div.classList.add("arimark-tags-block", "arima-tags-block");
     return div;
   },
   parseMarkdown: {
@@ -236,7 +133,7 @@ class TagsNodeView {
     this.view = view;
     this.getPos = getPos;
     this.dom = document.createElement("div");
-    this.dom.classList.add("arima-tags-block");
+    this.dom.classList.add("arimark-tags-block", "arima-tags-block");
     this.dom.dataset.type = "arima-tags";
     this.render();
   }
@@ -245,7 +142,7 @@ class TagsNodeView {
     this.dom.innerHTML = "";
     this.node.attrs.values.forEach((tag, index) => {
       const pill = document.createElement("span");
-      pill.classList.add("tag-pill");
+      pill.classList.add("arimark-tag-pill", "tag-pill");
       pill.textContent = tag;
       const removeBtn = document.createElement("button");
       removeBtn.innerHTML = "×";
@@ -260,7 +157,7 @@ class TagsNodeView {
 
     const input = document.createElement("span");
     input.contentEditable = "true";
-    input.classList.add("tag-input-area");
+    input.classList.add("arimark-tag-input", "tag-input-area");
     input.dataset.placeholder = this.node.attrs.values.length === 0 ? "Add tags..." : "";
     
     input.onkeydown = (e) => {
@@ -297,7 +194,7 @@ class TagsNodeView {
     this.view.dispatch(tr);
     if (refocus) {
       setTimeout(() => {
-        const input = this.dom.querySelector(".tag-input-area");
+        const input = this.dom.querySelector(".arimark-tag-input");
         if (input) input.focus();
       }, 10);
     }
@@ -309,7 +206,7 @@ class TagsNodeView {
     const tr = this.view.state.tr.setNodeMarkup(this.getPos(), null, { values });
     this.view.dispatch(tr);
     setTimeout(() => {
-      const input = this.dom.querySelector(".tag-input-area");
+      const input = this.dom.querySelector(".arimark-tag-input");
       if (input) input.focus();
     }, 10);
   }
@@ -379,7 +276,7 @@ const insertTagsCommand = $command("InsertTags", (ctx) => () => (state, dispatch
     dispatch(tr.scrollIntoView());
     setTimeout(() => {
       const view = ctx.get(editorViewCtx);
-      const input = view.dom.querySelector(".tag-input-area");
+      const input = view.dom.querySelector(".arimark-tag-input");
       if (input) input.focus();
     }, 20);
   }
@@ -409,6 +306,8 @@ const arimarkMetadataPlugin = () => {
 
 onMounted(async () => {
   if (!editorContainer.value) return;
+  const parsed = parseFrontmatter(props.modelValue);
+  extraYaml = parsed.extraYaml || {};
   const initialMarkdown = prepareInputMarkdown(props.modelValue);
   
   crepe = new Crepe({
@@ -435,7 +334,7 @@ onMounted(async () => {
     const listener = ctx.get(listenerCtx);
     listener.markdownUpdated((ctx, markdown, prevMarkdown) => {
       if (markdown !== prevMarkdown) {
-        const formatted = formatOutputMarkdown(markdown, props.metadataFormat);
+        const formatted = formatOutputMarkdown(markdown, props.metadataFormat, extraYaml);
         lastEmittedMarkdown = formatted;
         emit("update:modelValue", formatted);
       }
@@ -463,7 +362,7 @@ onUnmounted(() => {
 const handleKeyDown = (e) => {
   if ((e.ctrlKey || e.metaKey) && e.key === "s") {
     e.preventDefault();
-    const saveContent = lastEmittedMarkdown || formatOutputMarkdown(props.modelValue, props.metadataFormat);
+    const saveContent = lastEmittedMarkdown || formatOutputMarkdown(props.modelValue, props.metadataFormat, extraYaml);
     emit("save", saveContent);
   }
 };

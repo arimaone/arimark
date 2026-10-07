@@ -12,8 +12,8 @@ defineEmits(["update:modelValue", "save", "title-change", "tags-change"]);
 </script>
 
 <template>
-  <div class="arimark-container w-full font-sans">
-    <div class="w-full">
+  <div class="arimark-container">
+    <div class="arimark-editor-inner">
       <ArimarkEditor 
         :modelValue="modelValue" 
         :placeholder="placeholder"
@@ -35,6 +35,7 @@ defineEmits(["update:modelValue", "save", "title-change", "tags-change"]);
 
 /* 2. Theme Tokens with Robust Defaults (Overridable by host CSS) */
 .arimark-container {
+  width: 100%;
   --arimark-text-main: var(--text-main, #1e293b);
   --arimark-bg-main: var(--bg-main, #ffffff);
   --arimark-bg-muted: var(--bg-muted, #f8fafc);
@@ -43,7 +44,12 @@ defineEmits(["update:modelValue", "save", "title-change", "tags-change"]);
   --arimark-action-primary: var(--action-primary, #3b82f6);
   --arimark-action-hover: var(--action-hover, #2563eb);
   --arimark-action-danger: var(--action-danger, #ef4444);
-  --arimark-font: var(--font-sans, 'Source Sans 3', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif);
+  --arimark-font: var(--arimark-font-family, inherit);
+  font-family: var(--arimark-font);
+}
+
+.arimark-editor-inner {
+  width: 100%;
 }
 
 .arimark-crepe-host .milkdown {
@@ -112,7 +118,8 @@ defineEmits(["update:modelValue", "save", "title-change", "tags-change"]);
   }
 }
 
-/* Sovereign Title Styling */
+/* Title Block Styling */
+.arimark-crepe-host .arimark-title-block,
 .arimark-crepe-host .arima-title-block {
   font-size: 2.5rem !important;
   font-weight: 800 !important;
@@ -136,7 +143,9 @@ defineEmits(["update:modelValue", "save", "title-change", "tags-change"]);
 .arimark-crepe-host .ProseMirror > .table-block::after { content: "TABLE"; top: 4px; }
 
 /* Metadata Node Special Indicators */
+.arimark-crepe-host .ProseMirror > .arimark-title-block::after,
 .arimark-crepe-host .ProseMirror > .arima-title-block::after { content: "TITLE"; color: var(--arimark-action-primary); opacity: 0.4; top: 1.2rem; }
+.arimark-crepe-host .ProseMirror > .arimark-tags-block::after,
 .arimark-crepe-host .ProseMirror > .arima-tags-block::after { content: "TAGS"; color: var(--arimark-action-primary); opacity: 0.4; top: 1.5rem; }
 
 .arimark-crepe-host .ProseMirror > *:hover::after,
@@ -145,7 +154,8 @@ defineEmits(["update:modelValue", "save", "title-change", "tags-change"]);
   color: var(--arimark-action-primary) !important;
 }
 
-/* 4. Arima Tags Block Visuals */
+/* 4. Tags Block Visuals */
+.arimark-crepe-host .arimark-tags-block,
 .arimark-crepe-host .arima-tags-block {
   display: flex !important;
   flex-wrap: wrap !important;
@@ -158,7 +168,8 @@ defineEmits(["update:modelValue", "save", "title-change", "tags-change"]);
   min-height: 32px !important;
 }
 
-.arimark-crepe-host .arima-tags-block .tag-pill {
+.arimark-crepe-host .arimark-tag-pill,
+.arimark-crepe-host .tag-pill {
   display: inline-flex !important;
   align-items: center !important;
   gap: 6px !important;
@@ -173,13 +184,15 @@ defineEmits(["update:modelValue", "save", "title-change", "tags-change"]);
   user-select: none !important;
 }
 
-.arimark-crepe-host .arima-tags-block .tag-pill:hover {
+.arimark-crepe-host .arimark-tag-pill:hover,
+.arimark-crepe-host .tag-pill:hover {
   color: var(--arimark-text-main) !important;
   border-color: var(--arimark-action-primary) !important;
   background-color: var(--arimark-bg-main) !important;
 }
 
-.arimark-crepe-host .arima-tags-block .tag-pill button {
+.arimark-crepe-host .arimark-tag-pill button,
+.arimark-crepe-host .tag-pill button {
   border: none !important;
   background: transparent !important;
   padding: 0 !important;
@@ -194,11 +207,13 @@ defineEmits(["update:modelValue", "save", "title-change", "tags-change"]);
   justify-content: center !important;
 }
 
-.arimark-crepe-host .arima-tags-block .tag-pill button:hover {
+.arimark-crepe-host .arimark-tag-pill button:hover,
+.arimark-crepe-host .tag-pill button:hover {
   opacity: 1 !important;
   color: var(--arimark-action-danger) !important;
 }
 
+.arimark-crepe-host .arimark-tag-input,
 .arimark-crepe-host .tag-input-area {
   font-size: 13px !important;
   color: var(--arimark-text-main) !important;
@@ -208,6 +223,7 @@ defineEmits(["update:modelValue", "save", "title-change", "tags-change"]);
   padding: 4px 0 !important;
 }
 
+.arimark-crepe-host .arimark-tag-input:empty::before,
 .arimark-crepe-host .tag-input-area:empty::before {
   content: attr(data-placeholder);
   color: var(--arimark-text-muted) !important;
