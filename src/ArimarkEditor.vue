@@ -1,24 +1,32 @@
 <script setup>
-import { onMounted, onUnmounted, ref, watch, h, render } from "vue";
+import { onMounted, onUnmounted, ref } from "vue";
 import { Crepe } from "@milkdown/crepe";
 import { editorViewCtx, prosePluginsCtx, commandsCtx } from "@milkdown/core";
 import { listenerCtx } from "@milkdown/plugin-listener";
 import { Plugin, PluginKey, TextSelection } from "@milkdown/prose/state";
 import { $nodeSchema, $command, $remark } from "@milkdown/utils";
+import {
+  parseFrontmatter,
+  prepareInputMarkdown,
+  formatOutputMarkdown,
+  parseTitleLine,
+  parseTagsLine,
+} from "./frontmatter.js";
 
 const props = defineProps({
   modelValue: { type: String, default: "" },
   placeholder: { type: String, default: "/" },
   readonly: { type: Boolean, default: false },
+  metadataFormat: { type: String, default: "frontmatter" }, // 'frontmatter' | 'bracket'
 });
 
 const emit = defineEmits(["update:modelValue", "save", "title-change", "tags-change"]);
 
 const editorContainer = ref(null);
 let crepe = null;
-
-const TITLE_LINE_RE = /^title:\s*\[(.*)\]$/;
-const TAGS_LINE_RE = /^tags:\s*\[(.*)\]$/;
+let focusTimer = null;
+let lastEmittedMarkdown = "";
+let extraYaml = {};
 
 const extractParagraphText = (node) => {
   if (!Array.isArray(node?.children)) return "";
@@ -26,18 +34,6 @@ const extractParagraphText = (node) => {
     .map((child) => (typeof child?.value === "string" ? child.value : ""))
     .join("")
     .trim();
-};
-
-const parseTitleLine = (text) => {
-  const match = text.match(TITLE_LINE_RE);
-  if (!match) return null;
-  return (match[1] ?? "").trim();
-};
-
-const parseTagsLine = (text) => {
-  const match = text.match(TAGS_LINE_RE);
-  if (!match) return null;
-  return (match[1] ?? "").trim();
 };
 
 // --- 1. Remark Interceptor (The Source of Truth) ---
@@ -72,7 +68,7 @@ const titleNode = $nodeSchema("title", () => ({
   group: "block",
   defining: true,
   parseDOM: [{ tag: 'h1[data-type="arima-title"]' }],
-  toDOM: () => ["h1", { "data-type": "arima-title", class: "arima-title-block" }, 0],
+  toDOM: () => ["h1", { "data-type": "arima-title", class: "arimark-title-block arima-title-block" }, 0],
   parseMarkdown: {
     match: (node) => node.type === "arimaTitle",
     runner: (state, node, type) => {
@@ -107,7 +103,7 @@ const tagsNode = $nodeSchema("tags", () => ({
     const div = document.createElement("div");
     div.dataset.type = "arima-tags";
     div.dataset.values = node.attrs.values.join(",");
-    div.classList.add("arima-tags-block");
+    div.classList.add("arimark-tags-block", "arima-tags-block");
     return div;
   },
   parseMarkdown: {
@@ -138,7 +134,7 @@ class TagsNodeView {
     this.view = view;
     this.getPos = getPos;
     this.dom = document.createElement("div");
-    this.dom.classList.add("arima-tags-block");
+    this.dom.classList.add("arimark-tags-block", "arima-tags-block");
     this.dom.dataset.type = "arima-tags";
     this.render();
   }
@@ -147,7 +143,7 @@ class TagsNodeView {
     this.dom.innerHTML = "";
     this.node.attrs.values.forEach((tag, index) => {
       const pill = document.createElement("span");
-      pill.classList.add("tag-pill");
+      pill.classList.add("arimark-tag-pill", "tag-pill");
       pill.textContent = tag;
       const removeBtn = document.createElement("button");
       removeBtn.innerHTML = "×";
@@ -162,7 +158,7 @@ class TagsNodeView {
 
     const input = document.createElement("span");
     input.contentEditable = "true";
-    input.classList.add("tag-input-area");
+    input.classList.add("arimark-tag-input", "tag-input-area");
     input.dataset.placeholder = this.node.attrs.values.length === 0 ? "Add tags..." : "";
     
     input.onkeydown = (e) => {
@@ -199,7 +195,7 @@ class TagsNodeView {
     this.view.dispatch(tr);
     if (refocus) {
       setTimeout(() => {
-        const input = this.dom.querySelector(".tag-input-area");
+        const input = this.dom.querySelector(".arimark-tag-input");
         if (input) input.focus();
       }, 10);
     }
@@ -211,7 +207,7 @@ class TagsNodeView {
     const tr = this.view.state.tr.setNodeMarkup(this.getPos(), null, { values });
     this.view.dispatch(tr);
     setTimeout(() => {
-      const input = this.dom.querySelector(".tag-input-area");
+      const input = this.dom.querySelector(".arimark-tag-input");
       if (input) input.focus();
     }, 10);
   }
@@ -281,7 +277,7 @@ const insertTagsCommand = $command("InsertTags", (ctx) => () => (state, dispatch
     dispatch(tr.scrollIntoView());
     setTimeout(() => {
       const view = ctx.get(editorViewCtx);
-      const input = view.dom.querySelector(".tag-input-area");
+      const input = view.dom.querySelector(".arimark-tag-input");
       if (input) input.focus();
     }, 20);
   }
@@ -311,9 +307,13 @@ const arimarkMetadataPlugin = () => {
 
 onMounted(async () => {
   if (!editorContainer.value) return;
+  const parsed = parseFrontmatter(props.modelValue);
+  extraYaml = parsed.extraYaml || {};
+  const initialMarkdown = prepareInputMarkdown(props.modelValue);
+  
   crepe = new Crepe({
     root: editorContainer.value,
-    defaultValue: props.modelValue,
+    defaultValue: initialMarkdown,
     features: {
       [Crepe.Feature.BlockEdit]: true,
       [Crepe.Feature.Placeholder]: true,
@@ -334,7 +334,11 @@ onMounted(async () => {
   crepe.editor.config((ctx) => {
     const listener = ctx.get(listenerCtx);
     listener.markdownUpdated((ctx, markdown, prevMarkdown) => {
-      if (markdown !== prevMarkdown) emit("update:modelValue", markdown);
+      if (markdown !== prevMarkdown) {
+        const formatted = formatOutputMarkdown(markdown, props.metadataFormat, extraYaml);
+        lastEmittedMarkdown = formatted;
+        emit("update:modelValue", formatted);
+      }
     });
     ctx.update(prosePluginsCtx, (prev) => [...prev, arimarkMetadataPlugin()]);
   })
@@ -342,30 +346,46 @@ onMounted(async () => {
   .use(titleNode).use(tagsNode).use(insertTitleCommand).use(insertTagsCommand);
 
   await crepe.create();
-  setTimeout(() => {
-    crepe?.editor.action((ctx) => {
-      const view = ctx.get(editorViewCtx);
-      if (view && !props.readonly) view.focus();
-    });
+  focusTimer = setTimeout(() => {
+    try {
+      if (crepe?.editor) {
+        crepe.editor.action((ctx) => {
+          try {
+            const view = ctx.get(editorViewCtx);
+            if (view && !props.readonly) view.focus();
+          } catch (_) {}
+        });
+      }
+    } catch (_) {}
   }, 100);
   window.addEventListener("keydown", handleKeyDown);
 });
 
 onUnmounted(() => {
-  if (crepe) crepe.destroy();
+  if (focusTimer) {
+    clearTimeout(focusTimer);
+    focusTimer = null;
+  }
+  if (crepe) {
+    try {
+      crepe.destroy();
+    } catch (_) {}
+    crepe = null;
+  }
   window.removeEventListener("keydown", handleKeyDown);
 });
 
 const handleKeyDown = (e) => {
   if ((e.ctrlKey || e.metaKey) && e.key === "s") {
     e.preventDefault();
-    emit("save", props.modelValue);
+    const saveContent = lastEmittedMarkdown || formatOutputMarkdown(props.modelValue, props.metadataFormat, extraYaml);
+    emit("save", saveContent);
   }
 };
 </script>
 
 <template>
-  <div class="arimark-editor-wrapper text-textMain">
+  <div class="arimark-editor-wrapper">
     <div ref="editorContainer" class="arimark-crepe-host"></div>
   </div>
 </template>

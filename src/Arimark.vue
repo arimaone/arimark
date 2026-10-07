@@ -5,18 +5,20 @@ defineProps({
   modelValue: { type: String, default: "" },
   placeholder: { type: String, default: "Type '/' for commands" },
   readonly: { type: Boolean, default: false },
+  metadataFormat: { type: String, default: "frontmatter" }, // 'frontmatter' | 'bracket'
 });
 
 defineEmits(["update:modelValue", "save", "title-change", "tags-change"]);
 </script>
 
 <template>
-  <div class="arimark-container w-full font-sans">
-    <div class="w-full">
+  <div class="arimark-container">
+    <div class="arimark-editor-inner">
       <ArimarkEditor 
         :modelValue="modelValue" 
         :placeholder="placeholder"
         :readonly="readonly"
+        :metadataFormat="metadataFormat"
         @update:modelValue="$emit('update:modelValue', $event)"
         @save="$emit('save', $event)"
         @title-change="$emit('title-change', $event)"
@@ -31,22 +33,40 @@ defineEmits(["update:modelValue", "save", "title-change", "tags-change"]);
 @import "@milkdown/crepe/theme/common/style.css";
 @import "@milkdown/crepe/theme/classic.css";
 
-/* 2. Arima Theme Sovereignty */
+/* 2. Theme Tokens with Robust Defaults (Overridable by host CSS) */
+.arimark-container {
+  width: 100%;
+  --arimark-text-main: var(--text-main, #1e293b);
+  --arimark-bg-main: var(--bg-main, #ffffff);
+  --arimark-bg-muted: var(--bg-muted, #f8fafc);
+  --arimark-text-muted: var(--text-muted, #64748b);
+  --arimark-border-subtle: var(--border-subtle, #e2e8f0);
+  --arimark-action-primary: var(--action-primary, #3b82f6);
+  --arimark-action-hover: var(--action-hover, #2563eb);
+  --arimark-action-danger: var(--action-danger, #ef4444);
+  --arimark-font: var(--arimark-font-family, inherit);
+  font-family: var(--arimark-font);
+}
+
+.arimark-editor-inner {
+  width: 100%;
+}
+
 .arimark-crepe-host .milkdown {
   --crepe-color-background: transparent !important;
-  --crepe-color-on-background: var(--text-main) !important;
-  --crepe-color-surface: var(--bg-main) !important;
-  --crepe-color-surface-low: var(--bg-muted) !important;
-  --crepe-color-on-surface: var(--text-main) !important;
-  --crepe-color-on-surface-variant: var(--text-muted) !important;
-  --crepe-color-outline: var(--border-subtle) !important;
-  --crepe-color-primary: var(--action-primary) !important;
-  --crepe-color-hover: var(--bg-muted) !important;
-  --crepe-color-selected: var(--action-hover) !important;
-  --crepe-color-inline-area: var(--bg-muted) !important;
+  --crepe-color-on-background: var(--arimark-text-main) !important;
+  --crepe-color-surface: var(--arimark-bg-main) !important;
+  --crepe-color-surface-low: var(--arimark-bg-muted) !important;
+  --crepe-color-on-surface: var(--arimark-text-main) !important;
+  --crepe-color-on-surface-variant: var(--arimark-text-muted) !important;
+  --crepe-color-outline: var(--arimark-border-subtle) !important;
+  --crepe-color-primary: var(--arimark-action-primary) !important;
+  --crepe-color-hover: var(--arimark-bg-muted) !important;
+  --crepe-color-selected: var(--arimark-action-hover) !important;
+  --crepe-color-inline-area: var(--arimark-bg-muted) !important;
   
-  --crepe-font-default: 'Source Sans 3', sans-serif !important;
-  --crepe-font-title: 'Source Sans 3', sans-serif !important;
+  --crepe-font-default: var(--arimark-font) !important;
+  --crepe-font-title: var(--arimark-font) !important;
   
   --crepe-shadow-1: none !important;
   --crepe-shadow-2: none !important;
@@ -65,12 +85,12 @@ defineEmits(["update:modelValue", "save", "title-change", "tags-change"]);
 
 .arimark-crepe-host .ProseMirror {
   padding: 0 !important;
-  color: var(--text-main) !important;
+  color: var(--arimark-text-main) !important;
   background: transparent !important;
   min-height: 70vh;
 }
 
-/* 3. Sovereign Title & Metadata Indicators */
+/* 3. Margin Indicators & Responsive Behavior */
 .arimark-crepe-host .ProseMirror > * {
   position: relative !important;
 }
@@ -78,26 +98,34 @@ defineEmits(["update:modelValue", "save", "title-change", "tags-change"]);
 .arimark-crepe-host .ProseMirror > *::after {
   position: absolute;
   right: -80px; 
-  font-size: 1rem !important;
+  font-size: 0.875rem !important;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: var(--text-muted);
+  color: var(--arimark-text-muted);
   pointer-events: none;
   user-select: none;
   opacity: 0.15;
   transition: all 0.2s ease;
-  font-family: 'Source Sans 3', sans-serif !important;
+  font-family: var(--arimark-font);
   white-space: nowrap;
 }
 
-/* Sovereign Title Styling */
+/* Hide right margin indicators on narrower viewports to avoid horizontal overflow */
+@media (max-width: 1024px) {
+  .arimark-crepe-host .ProseMirror > *::after {
+    display: none !important;
+  }
+}
+
+/* Title Block Styling */
+.arimark-crepe-host .arimark-title-block,
 .arimark-crepe-host .arima-title-block {
   font-size: 2.5rem !important;
   font-weight: 800 !important;
   letter-spacing: -0.02em !important;
   margin-bottom: 2.5rem !important;
-  color: var(--text-main) !important;
+  color: var(--arimark-text-main) !important;
   line-height: 1.2 !important;
 }
 
@@ -115,50 +143,56 @@ defineEmits(["update:modelValue", "save", "title-change", "tags-change"]);
 .arimark-crepe-host .ProseMirror > .table-block::after { content: "TABLE"; top: 4px; }
 
 /* Metadata Node Special Indicators */
-.arimark-crepe-host .ProseMirror > .arima-title-block::after { content: "TITLE"; color: var(--action-primary); opacity: 0.4; top: 1.2rem; }
-.arimark-crepe-host .ProseMirror > .arima-tags-block::after { content: "TAGS"; color: var(--action-primary); opacity: 0.4; top: 1.5rem; }
+.arimark-crepe-host .ProseMirror > .arimark-title-block::after,
+.arimark-crepe-host .ProseMirror > .arima-title-block::after { content: "TITLE"; color: var(--arimark-action-primary); opacity: 0.4; top: 1.2rem; }
+.arimark-crepe-host .ProseMirror > .arimark-tags-block::after,
+.arimark-crepe-host .ProseMirror > .arima-tags-block::after { content: "TAGS"; color: var(--arimark-action-primary); opacity: 0.4; top: 1.5rem; }
 
 .arimark-crepe-host .ProseMirror > *:hover::after,
 .arimark-crepe-host .ProseMirror > *.ProseMirror-selectednode::after {
   opacity: 0.4 !important;
-  color: var(--action-primary) !important;
+  color: var(--arimark-action-primary) !important;
 }
 
-/* 4. Arima Tags Block Visuals - Minimalist Metadata */
+/* 4. Tags Block Visuals */
+.arimark-crepe-host .arimark-tags-block,
 .arimark-crepe-host .arima-tags-block {
   display: flex !important;
   flex-wrap: wrap !important;
   align-items: center !important;
   gap: 8px !important;
   padding: 24px 0 !important;
-  border-top: 1px solid rgba(var(--border-subtle-rgb, 0,0,0), 0.1) !important;
+  border-top: 1px solid var(--arimark-border-subtle) !important;
   margin-top: 48px !important;
   background: transparent !important;
   min-height: 32px !important;
 }
 
-.arimark-crepe-host .arima-tags-block .tag-pill {
+.arimark-crepe-host .arimark-tag-pill,
+.arimark-crepe-host .tag-pill {
   display: inline-flex !important;
   align-items: center !important;
   gap: 6px !important;
   padding: 4px 10px !important;
-  background-color: var(--bg-muted) !important;
-  border: 1px solid var(--border-subtle) !important;
+  background-color: var(--arimark-bg-muted) !important;
+  border: 1px solid var(--arimark-border-subtle) !important;
   border-radius: 9999px !important;
   font-size: 11px !important;
   font-weight: 700 !important;
-  color: var(--text-muted) !important;
+  color: var(--arimark-text-muted) !important;
   transition: all 0.2s ease !important;
   user-select: none !important;
 }
 
-.arimark-crepe-host .arima-tags-block .tag-pill:hover {
-  color: var(--text-main) !important;
-  border-color: var(--action-primary) !important;
-  background-color: var(--bg-main) !important;
+.arimark-crepe-host .arimark-tag-pill:hover,
+.arimark-crepe-host .tag-pill:hover {
+  color: var(--arimark-text-main) !important;
+  border-color: var(--arimark-action-primary) !important;
+  background-color: var(--arimark-bg-main) !important;
 }
 
-.arimark-crepe-host .arima-tags-block .tag-pill button {
+.arimark-crepe-host .arimark-tag-pill button,
+.arimark-crepe-host .tag-pill button {
   border: none !important;
   background: transparent !important;
   padding: 0 !important;
@@ -173,44 +207,47 @@ defineEmits(["update:modelValue", "save", "title-change", "tags-change"]);
   justify-content: center !important;
 }
 
-.arimark-crepe-host .arima-tags-block .tag-pill button:hover {
+.arimark-crepe-host .arimark-tag-pill button:hover,
+.arimark-crepe-host .tag-pill button:hover {
   opacity: 1 !important;
-  color: var(--action-danger) !important;
+  color: var(--arimark-action-danger) !important;
 }
 
+.arimark-crepe-host .arimark-tag-input,
 .arimark-crepe-host .tag-input-area {
   font-size: 13px !important;
-  color: var(--text-main) !important;
+  color: var(--arimark-text-main) !important;
   min-width: 120px !important;
   outline: none !important;
-  caret-color: var(--action-primary) !important;
+  caret-color: var(--arimark-action-primary) !important;
   padding: 4px 0 !important;
 }
 
+.arimark-crepe-host .arimark-tag-input:empty::before,
 .arimark-crepe-host .tag-input-area:empty::before {
   content: attr(data-placeholder);
-  color: var(--text-muted) !important;
-  opacity: 0.3 !important;
+  color: var(--arimark-text-muted) !important;
+  opacity: 0.4 !important;
   font-style: italic !important;
   pointer-events: none !important;
 }
 
 /* 5. Slash Menu & Formatting Toolbar */
 .arimark-crepe-host .milkdown-slash-menu {
-  background-color: var(--bg-main) !important;
-  border: 1px solid var(--border-subtle) !important;
+  background-color: var(--arimark-bg-main) !important;
+  border: 1px solid var(--arimark-border-subtle) !important;
   border-radius: 8px !important;
-  box-shadow: 0 12px 40px -12px rgba(0, 0, 0, 0.2) !important;
+  box-shadow: 0 12px 40px -12px rgba(0, 0, 0, 0.15) !important;
   padding: 4px !important;
   min-width: 200px !important; 
   z-index: 1000 !important;
 }
 
 .arimark-crepe-host .milkdown-toolbar {
-  background-color: var(--bg-main) !important;
-  border: 1px solid var(--border-subtle) !important;
+  background-color: var(--arimark-bg-main) !important;
+  border: 1px solid var(--arimark-border-subtle) !important;
   border-radius: 6px !important;
-  box-shadow: 0 12px 40px -12px rgba(0, 0, 0, 0.2) !important;
+  box-shadow: 0 12px 40px -12px rgba(0, 0, 0, 0.15) !important;
   padding: 4px !important;
   gap: 2px !important;
   display: flex !important;
@@ -226,7 +263,7 @@ defineEmits(["update:modelValue", "save", "title-change", "tags-change"]);
 
 /* 6. Ghost Placeholder */
 .arimark-crepe-host .ProseMirror .placeholder {
-  color: var(--text-muted) !important;
+  color: var(--arimark-text-muted) !important;
   opacity: 0.5 !important;
   font-style: italic !important;
   pointer-events: none !important;
