@@ -1,6 +1,6 @@
 {
   "name": "@arimaone/arimark",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A minimalist, block-based Markdown editor for Vue 3 built on Milkdown Crepe.",
   "license": "MIT",
   "type": "module",
