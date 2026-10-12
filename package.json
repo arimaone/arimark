@@ -64,9 +64,13 @@
     "vue": "^3.3.0"
   },
   "devDependencies": {
+    "@semantic-release/changelog": "^6.0.3",
+    "@semantic-release/git": "^10.0.1",
+    "@semantic-release/npm": "^13.2.0",
     "@vitejs/plugin-vue": "^5.2.1",
     "@vue/test-utils": "^2.5.1",
     "happy-dom": "^20.14.5",
+    "semantic-release": "^25.0.9",
     "vite": "^6.2.0",
     "vitest": "^3.0.7",
     "vue": "^3.5.25"
