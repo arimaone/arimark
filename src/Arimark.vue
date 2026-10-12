@@ -133,13 +133,27 @@ defineEmits(["update:modelValue", "save", "title-change", "tags-change"]);
 .arimark-crepe-host .ProseMirror > h1::after { content: "H1"; top: 12px; }
 .arimark-crepe-host .ProseMirror > h2::after { content: "H2"; top: 10px; }
 .arimark-crepe-host .ProseMirror > h3::after { content: "H3"; top: 8px; }
+.arimark-crepe-host .ProseMirror > h4::after { content: "H4"; top: 6px; }
+.arimark-crepe-host .ProseMirror > h5::after { content: "H5"; top: 4px; }
+.arimark-crepe-host .ProseMirror > h6::after { content: "H6"; top: 4px; }
+.arimark-crepe-host .ProseMirror > blockquote::after,
 .arimark-crepe-host .ProseMirror > .blockquote::after { content: "QUOTE"; top: 4px; }
+.arimark-crepe-host .ProseMirror > hr::after,
 .arimark-crepe-host .ProseMirror > .hr::after { content: "DIVIDER"; top: -10px; }
+.arimark-crepe-host .ProseMirror > ul:not([data-type="taskList"]):not(.task-list)::after,
 .arimark-crepe-host .ProseMirror > .bullet-list::after { content: "LIST"; top: 4px; }
+.arimark-crepe-host .ProseMirror > ol::after,
 .arimark-crepe-host .ProseMirror > .ordered-list::after { content: "NUMS"; top: 4px; }
+.arimark-crepe-host .ProseMirror > ul[data-type="taskList"]::after,
+.arimark-crepe-host .ProseMirror > ul.task-list::after,
 .arimark-crepe-host .ProseMirror > .task-list::after { content: "TASK"; top: 4px; }
-.arimark-crepe-host .ProseMirror > .image-block::after { content: "IMAGE"; top: 4px; }
-.arimark-crepe-host .ProseMirror > .code-mirror::after { content: "CODE"; top: 4px; }
+.arimark-crepe-host .ProseMirror > .image-block::after,
+.arimark-crepe-host .ProseMirror > [data-type="image-block"]::after { content: "IMAGE"; top: 4px; }
+.arimark-crepe-host .ProseMirror > .milkdown-code-block::after,
+.arimark-crepe-host .ProseMirror > .code-mirror::after,
+.arimark-crepe-host .ProseMirror > pre::after { content: "CODE"; top: 4px; }
+.arimark-crepe-host .ProseMirror > table::after,
+.arimark-crepe-host .ProseMirror > .table-wrapper::after,
 .arimark-crepe-host .ProseMirror > .table-block::after { content: "TABLE"; top: 4px; }
 
 /* Metadata Node Special Indicators */
